@@ -8,6 +8,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
@@ -55,7 +57,7 @@ public class App {
     }
 
 
-    //TODO
+
     public void csvToJson() {
         InputStream inputStream = getInputStream();
         String csvAsString = new BufferedReader(new InputStreamReader(inputStream)).lines().collect(Collectors.joining("\n"));
@@ -79,9 +81,17 @@ public class App {
             logger.fatal("A fatal error occurred, please check if your .json file is correctly formatted.");
         }
     }
-    //TODO
     public void saveFile(byte[] bytes) {
-
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print("Enter the path where you want to save the output: ");
+            String outputPath = reader.readLine();
+            System.out.println("\nConverting...");
+            Files.write(Path.of(outputPath), bytes);
+            System.out.println("\nSuccessfully converted to: src/main/resources/output.csv");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
