@@ -12,7 +12,8 @@ import java.util.Scanner;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
+import org.json.JSONArray;
+import org.json.JSONTokener;
 
 
 public class App {
@@ -68,10 +69,16 @@ public class App {
     }
 
 
-    //TODO
     public void jsonToCsv() {
+        InputStream inputStream = getInputStream();
+        try {
+            JSONArray jsonArray = new JSONArray(new JSONTokener(inputStream));
+            saveFile(CDL.toString(jsonArray).getBytes(StandardCharsets.UTF_8));
+        }
+        catch (Exception e) {
+            logger.fatal("A fatal error occurred, please check if your .json file is correctly formatted.");
+        }
     }
-
     //TODO
     public void saveFile(byte[] bytes) {
 
