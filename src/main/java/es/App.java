@@ -3,11 +3,16 @@ package es;
 import org.json.CDL;
 
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+
 import java.util.Scanner;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 
 
 public class App {
@@ -72,15 +77,23 @@ public class App {
 
     }
 
+
     public InputStream getInputStream() {
         InputStream inputStream = null;
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-            //TODO remote URL
-            System.out.print("Enter the file path: ");
+            System.out.print("Enter the file path or remote URL: ");
             String fileOrUrl = reader.readLine();
 
-            inputStream = new FileInputStream(fileOrUrl);
+            if (fileOrUrl.startsWith("http") || fileOrUrl.startsWith("https")) {
+                URL url = new URL(fileOrUrl);
+                URLConnection connection = url.openConnection();
+                inputStream = connection.getInputStream();
+            } else {
+                inputStream = new FileInputStream(fileOrUrl);
+            }
+        } catch (MalformedURLException e) {
+            logger.error("Invalid URL");
         } catch (FileNotFoundException e) {
             logger.error("File not found");
         } catch (IOException e) {
