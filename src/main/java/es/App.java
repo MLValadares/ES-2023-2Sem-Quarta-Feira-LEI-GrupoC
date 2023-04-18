@@ -27,6 +27,11 @@ public class App {
     }
 
 
+    /**
+     * Description: Esta função irá utilizar o valor option obtido através da função GetFlowOption() para determinar se vamos converter um ficheiro CSV para Json ou vice-versa
+     *              Ao terminar a conversão escreve "Exiting..." na consola
+     *
+     */
     public void appStart() {
         int option = getFlowOption();
         switch (option) {
@@ -42,6 +47,12 @@ public class App {
         System.out.println("Exiting...");
     }
 
+    /**
+     * Description: Esta função pergunta ao user se pretende converter um ficheiro do tipo CSV para Json ou um ficheiro do tipo Json para CSV
+     *
+     * @return -1 se a função falhar / option sendo option a opção escolhida pelo utilizador que apenas pode assumir os valores 1 ou 2
+     *
+     */
     public int getFlowOption() {
         try {
             Scanner s = new Scanner(System.in);
@@ -57,7 +68,12 @@ public class App {
     }
 
 
-
+    /**
+     * Description: Esta função guarda na variável csvAsString o nome do ficheiro CSV que irá ser transformado numa string Json e salvo como ficheiro Json
+     *              Caso haja um erro na transição da string CSV para a string Json um erro é mostrado na consola
+     *
+     *
+     */
     public void csvToJson() {
         InputStream inputStream = getInputStream();
         String csvAsString = new BufferedReader(new InputStreamReader(inputStream)).lines().collect(Collectors.joining("\n"));
@@ -71,6 +87,13 @@ public class App {
     }
 
 
+    /**
+     * Description:Esta função guarda na variável jsonArray o input do utilizador que irá ser salvo como ficheiro CSV
+     *             Caso haja um erro na transição da string json para a string CSV um erro é mostrado na consola
+     *
+     *
+     *
+     */
     public void jsonToCsv() {
         InputStream inputStream = getInputStream();
         try {
@@ -81,6 +104,12 @@ public class App {
             logger.fatal("A fatal error occurred, please check if your .json file is correctly formatted.");
         }
     }
+
+    /**
+     * Description: Esta função irá salvar o ficheiro dado como input na consola com o conteúdo dado nos parãmetros de entrada
+     *
+     * @param bytes sendo bytes o conteudo do arquivo que irá ser salvo
+     */
     public void saveFile(byte[] bytes) {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -95,6 +124,12 @@ public class App {
     }
 
 
+    /**
+     * Description: Esta função através do input utilizador guarda o path do ficheiro ou o URl do ficheiro na variável fileorUrl e caso a variável comece por http ou https,
+     *            indicando que é um URL, faz a conexão  guardando o ficheiro na variável inputStream, caso seja um path, guarda o path na variável inputStream
+     *
+     * @return inputStream sendo inputStream o input dado pelo utilizador, podendo este ser um URL ou um PATH do ficheiro
+     */
     public InputStream getInputStream() {
         InputStream inputStream = null;
         try {
