@@ -1,3 +1,4 @@
+
 package es;
 
 import org.json.CDL;
@@ -28,10 +29,16 @@ public class AppGUI extends JFrame {
         app.start();
     }
 
+    /**
+     * Description: Esta função irá iniciar a GUI
+     */
     public void start() {
         initComponents();
     }
 
+    /**
+     * Description: Esta função serve para construir o GUI que irá ser utilizado pelo utilizador para converter os ficheiros
+     */
     private void initComponents() {
         JRadioButton jsonToCsvRadioButton;
         JButton convertButton;
@@ -83,6 +90,10 @@ public class AppGUI extends JFrame {
         setVisible(true);
     }
 
+    /**
+     * Description: Esta função irá guardar na variável option os valores 1 ou 2 dependendo que opção o utilizador escolher selecionar no radioButton
+     *            para converter ou de um ficheiro CSV para Json ou Json para CSV respetivamente. Ao acabar a conversão o programa acaba
+     */
     private void convertButtonActionPerformed() {
         int option = csvToJsonRadioButton.isSelected() ? 1 : 2;
         String inputFileOrUrl = inputFileTextField.getText();
@@ -104,6 +115,13 @@ public class AppGUI extends JFrame {
     }
 
 
+    /**
+     * Description: Esta função através do input do utilizador irá fazer a conversão do tipo do ficheiro e caso haja um erro no input do user
+     *            é mostrada a mensagem de erro relativa à IOException ou o erro esteja na transição do formato é mostrada a mensagem de erro
+     *            relativa à JSONException
+     *
+     * @param inputFileOrUrl sendo inputFileOrUrl o path ou URL do ficheiro introduzido pelo user
+     */
     public void csvToJson(String inputFileOrUrl) {
         try (InputStream inputStream = getInputStream(inputFileOrUrl);
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
@@ -119,6 +137,13 @@ public class AppGUI extends JFrame {
         }
     }
 
+    /**
+     * Description: Esta função através do input do utilizador irá fazer a conversão do tipo do ficheiro e caso haja um erro no input do user
+     *            é mostrada a mensagem de erro relativa à IOException ou o erro esteja na transição do formato é mostrada a mensagem de erro
+     *            relativa à JSONException
+     *
+     * @param inputFileOrUrl sendo inputFileOrUrl o path ou URL do ficheiro introduzido pelo user
+     */
     public void jsonToCsv(String inputFileOrUrl) {
         try (InputStream inputStream = getInputStream(inputFileOrUrl);
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
@@ -134,6 +159,14 @@ public class AppGUI extends JFrame {
         }
     }
 
+    /**
+     * Description: Esta função, através do inputFileorUrl, sendo este a string do path ou do URL do ficheiro, guarda o input do utilizador na variável
+     *            inputStream para esta ser utilizada na conversão
+     *
+     * @param inputFileOrUrl sendo inputFileorURl o path ou o URL do ficheiro introduzido pelo user
+     * @return inputStream sendo inputStream o URL ou o path do ficheiro introduzido pelo user em formato InputStream
+     * @throws IOException caso haja um erro relativamente ao input do utilizador
+     */
     public InputStream getInputStream(String inputFileOrUrl) throws IOException {
         InputStream inputStream = null;
         if (inputFileOrUrl.startsWith("http") || inputFileOrUrl.startsWith("https")) {
@@ -146,6 +179,13 @@ public class AppGUI extends JFrame {
         return inputStream;
     }
 
+    /**
+     * Description: Esta função serve para guardar o conteúdo de um ficheiro, dado pelo parâmetro content, no tipo pretendido, dado pelo parâmetro type
+     *
+     * @param type sendo type o tipo que o ficheiro irá ter
+     * @param content sendo content o conteúdo do ficheiro que irá ser guardado
+     * @throws java.io.IOException caso haja um erro ao guardar o ficheiro
+     */
     private void saveFile(String type, String content) throws java.io.IOException{
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Save " + type + " File");
@@ -160,3 +200,4 @@ public class AppGUI extends JFrame {
         }
     }
 }
+
