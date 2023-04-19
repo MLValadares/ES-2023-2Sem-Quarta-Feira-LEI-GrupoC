@@ -39,7 +39,7 @@ public class AppGUI extends JFrame {
     /**
      * Description: Esta função serve para construir o GUI que irá ser utilizado pelo utilizador para converter os ficheiros
      */
-    private void initComponents() {
+    public boolean initComponents() {
         JRadioButton jsonToCsvRadioButton;
         JButton convertButton;
         JLabel inputLabel;
@@ -88,6 +88,7 @@ public class AppGUI extends JFrame {
         pack();
         setLocationRelativeTo(null);
         setVisible(true);
+		return true;
     }
 
     /**

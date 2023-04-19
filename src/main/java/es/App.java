@@ -32,7 +32,7 @@ public class App {
      *              Ao terminar a conversão escreve "Exiting..." na consola
      *
      */
-    public void appStart() {
+    public boolean appStart() {
         int option = getFlowOption();
         switch (option) {
             case 1:
@@ -45,6 +45,7 @@ public class App {
                 break;
         }
         System.out.println("Exiting...");
+        return true;
     }
 
     /**
