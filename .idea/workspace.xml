@@ -8,7 +8,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0dc5124f-f964-42f6-b86f-caf73d2ba283" name="Changes" comment="Initial commit - create project" />
+    <list default="true" id="0dc5124f-f964-42f6-b86f-caf73d2ba283" name="Changes" comment="Refactor to the app use GUI instead of text only">
+      <change beforePath="$PROJECT_DIR$/.idea/sonarlint/issuestore/index.pb" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/sonarlint/issuestore/index.pb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/sonarlint/securityhotspotstore/index.pb" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/sonarlint/securityhotspotstore/index.pb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pisid/AppGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pisid/AppGUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/output.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/output.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/pisid/AppGUI.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pisid/AppGUI.class" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -22,13 +30,14 @@
       <list>
         <option value="Tag Library Descriptor" />
         <option value="Class" />
+        <option value="HTML File" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="Create_Maeven_Project" />
+        <entry key="$PROJECT_DIR$" value="main" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -49,11 +58,12 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="DefaultHtmlFileTemplate" value="HTML File" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SONARLINT_PRECOMMIT_ANALYSIS" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/src/main/resources" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
@@ -66,6 +76,7 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\nunic\OneDrive\Ambiente de Trabalho\ISCTE\3º Ano 2º Semestre\ES\ES-2023-2Sem-Quarta-Feira-LEI-GrupoC\src\main\resources" />
       <recent name="C:\Users\nunic\OneDrive\Ambiente de Trabalho\ISCTE\3º Ano 2º Semestre\ES\Projeto\src\main\java\PISID_PROJECT" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
@@ -152,6 +163,15 @@
       <workItem from="1680881012268" duration="5278000" />
       <workItem from="1681742146730" duration="5048000" />
       <workItem from="1681761182334" duration="903000" />
+      <workItem from="1681807440829" duration="157000" />
+      <workItem from="1681908417328" duration="163000" />
+      <workItem from="1682207613162" duration="1158000" />
+      <workItem from="1682354969401" duration="1993000" />
+      <workItem from="1682437719681" duration="2030000" />
+      <workItem from="1682729663596" duration="851000" />
+      <workItem from="1682765728624" duration="12681000" />
+      <workItem from="1682791721004" duration="679000" />
+      <workItem from="1682797272098" duration="608000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit - create project">
       <created>1680705039535</created>
@@ -167,7 +187,14 @@
       <option name="project" value="LOCAL" />
       <updated>1680708902062</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Refactor to the app use GUI instead of text only">
+      <created>1681807583701</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1681807583701</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -186,6 +213,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Initial commit - create project" />
-    <option name="LAST_COMMIT_MESSAGE" value="Initial commit - create project" />
+    <MESSAGE value="Refactor to the app use GUI instead of text only" />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor to the app use GUI instead of text only" />
   </component>
 </project>

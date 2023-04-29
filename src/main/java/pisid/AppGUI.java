@@ -5,9 +5,12 @@ import org.json.CDL;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,6 +24,7 @@ public class AppGUI extends JFrame {
 
     private JTextField inputFileTextField;
     private JRadioButton csvToJsonRadioButton;
+    private JRadioButton jsonToCsvRadioButton;
     private String error = "Error";
 
     public static void main(String[] args) {
@@ -33,7 +37,7 @@ public class AppGUI extends JFrame {
     }
 
     private void initComponents() {
-        JRadioButton jsonToCsvRadioButton;
+        JRadioButton launchHtmlRadioButton;
         JButton convertButton;
         JLabel inputLabel;
         // Set up the main frame
@@ -62,11 +66,14 @@ public class AppGUI extends JFrame {
         ButtonGroup buttonGroup = new ButtonGroup();
         csvToJsonRadioButton = new JRadioButton("CSV to JSON");
         jsonToCsvRadioButton = new JRadioButton("JSON to CSV");
+        launchHtmlRadioButton = new JRadioButton("Launch HTML");
         buttonGroup.add(csvToJsonRadioButton);
         buttonGroup.add(jsonToCsvRadioButton);
+        buttonGroup.add(launchHtmlRadioButton);
         csvToJsonRadioButton.setSelected(true);
         radioButtonPanel.add(csvToJsonRadioButton);
         radioButtonPanel.add(jsonToCsvRadioButton);
+        radioButtonPanel.add(launchHtmlRadioButton);
         contentPane.add(radioButtonPanel);
 
         // Set up the convert button
@@ -83,8 +90,16 @@ public class AppGUI extends JFrame {
         setVisible(true);
     }
 
+
     private void convertButtonActionPerformed() {
-        int option = csvToJsonRadioButton.isSelected() ? 1 : 2;
+        int option = 0;
+        if (csvToJsonRadioButton.isSelected()) {
+            option = 1;
+        } else if (jsonToCsvRadioButton.isSelected()) {
+            option = 2;
+        } else {
+            option = 3;
+        }
         String inputFileOrUrl = inputFileTextField.getText();
         try {
             switch (option) {
@@ -93,6 +108,9 @@ public class AppGUI extends JFrame {
                     break;
                 case 2:
                     jsonToCsv(inputFileOrUrl);
+                    break;
+                case 3:
+                    launchHtml(inputFileOrUrl);
                     break;
                 default:
                     throw new IllegalArgumentException("Invalid option: " + option);
@@ -159,4 +177,55 @@ public class AppGUI extends JFrame {
             JOptionPane.showMessageDialog(this, "Successfully converted to: " + fileToSave.getAbsolutePath(), "Success", JOptionPane.INFORMATION_MESSAGE);
         }
     }
+
+    private void launchHtml(String inputFileOrUrl) {
+        String fileExtension = inputFileOrUrl.substring(inputFileOrUrl.lastIndexOf(".") + 1).toLowerCase();
+        if (fileExtension.equals("csv")) {
+            // convert CSV to JSON first
+            try (InputStream inputStream = getInputStream(inputFileOrUrl);
+                 BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+                String csvAsString = reader.lines().collect(Collectors.joining("\n"));
+                String json = CDL.toJSONArray(csvAsString).toString();
+                String jsonFileName = inputFileOrUrl.substring(0, inputFileOrUrl.lastIndexOf(".")) + ".json";
+                try (FileWriter fileWriter = new FileWriter(jsonFileName)) {
+                    fileWriter.write(json);
+                }
+                launchHtmlWithJson(jsonFileName);
+            } catch (IOException e) {
+                logger.error("Error converting CSV to JSON", e);
+                JOptionPane.showMessageDialog(this, "Error converting CSV to JSON: " + e.getMessage(), error, JOptionPane.ERROR_MESSAGE);
+            } catch (JSONException e) {
+                logger.error("Invalid CSV format", e);
+                JOptionPane.showMessageDialog(this, "Invalid CSV format: " + e.getMessage(), error, JOptionPane.ERROR_MESSAGE);
+            }
+        } else if (fileExtension.equals("json")) {
+            // directly launch HTML page with JSON file
+            launchHtmlWithJson(inputFileOrUrl);
+        } else {
+            // invalid file type
+            JOptionPane.showMessageDialog(this, "Invalid file type: " + fileExtension, error, JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void launchHtmlWithJson(String jsonFilePath) {
+        try {
+            String relativePath = "src/main/resources/test.html";
+            File file = new File(relativePath);
+            URI uri = file.toURI();
+            String jsonString = new String(Files.readAllBytes(Paths.get(jsonFilePath)));
+            String jsString = "var myData = " + jsonString + ";";
+            String jsFilePath = "src/main/resources/data.js";
+            try (FileWriter fileWriter = new FileWriter(jsFilePath)) {
+                fileWriter.write(jsString);
+            }
+            if (Desktop.isDesktopSupported()) {
+                logger.error(uri);
+                Desktop.getDesktop().browse(uri);
+            }
+        } catch (IOException e) {
+            logger.error("Error launching HTML page", e);
+            JOptionPane.showMessageDialog(this, "Error launching HTML page: " + e.getMessage(), error, JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
 }

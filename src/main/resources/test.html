@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset='utf-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>FullCalendar Demo</title>
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css' />
+
+    <style>
+        #calendar-container {
+            height: calc(100% - 20px); /* Adjust as necessary */
+        }
+
+        #calendar, #button-container {
+            height: 100%;
+            margin-bottom: 10px;
+        }
+
+        #button-container {
+            text-align: center;
+        }
+
+        button {
+            font-size: 16px;
+            padding: 10px 20px;
+        }
+
+        .tooltip {
+            position: absolute;
+            z-index: 9999;
+            display: none;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 5px #999;
+            border-radius: 3px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .tooltip:before {
+            content: "";
+            position: absolute;
+            border: 8px solid transparent;
+            border-bottom-color: #ccc;
+            top: -16px;
+            left: 50%;
+            margin-left: -8px;
+        }
+    </style>
+</head>
+<body>
+
+<div id='calendar-container'>
+    <div id='calendar'></div>
+    <div id='button-container'>
+        <button id="dayButton">Day</button>
+        <button id="weekButton">Week</button>
+        <button id="monthButton">Month</button>
+    </div>
+</div>
+
+<script src='https://code.jquery.com/jquery-3.6.0.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js'></script>
+<script src="data.js"></script>
+
+<script>
+
+    console.log(myData)
+    const eventsArr = myData.map(obj => ({
+        id: obj.Turno,
+        title: obj["Unidade Curricular"],
+        start: `${obj["Data da aula"].split('/').reverse().join('-')}T${obj["Hora inÃ­cio da aula"]}`,
+        end: `${obj["Data da aula"].split('/').reverse().join('-')}T${obj["Hora fim da aula"]}`,
+        allDay: false,
+        classNames: [obj.Turma],
+        extendedProps: {
+            "Inscritos no turno": obj["Inscritos no turno"],
+            "Turma": obj.Turma,
+            "Turno": obj.Turno,
+            "Curso": obj["\uFEFFCurso"].trim(),
+            "Sala atribuída à aula": obj["Sala atribuída à aula"],
+            "Lotação da sala": obj["LotaÃ§Ã£o da sala"],
+            "Dia da semana": obj["Dia da semana"],
+            "Data da aula": obj["Data da aula"],
+            "Unidade Curricular": obj["Unidade Curricular"]
+        },
+        dataTooltip: `<div><strong>${obj["Unidade Curricular"]}</strong></div>
+                      <div><strong>Curso:</strong> ${obj.Curso}</div>
+                      <div><strong>Turma:</strong> ${obj.Turma}</div>
+                      <div><strong>Turno:</strong> ${obj.Turno}</div>
+                      <div><strong>Sala:</strong> ${obj["Sala atribuída à aula"]}</div>
+                      <div><strong>Lotação:</strong> ${obj["Lotação da sala"]}</div>
+                      <div><strong>Dia da semana:</strong> ${obj["Dia da semana"]}</div>
+                      <div><strong>Data:</strong> ${obj["Data da aula"]}</div>
+                      <div><strong>Inscritos:</strong> ${obj["Inscritos no turno"]}</div>`
+    }));
+
+    console.log(eventsArr)
+
+    $(document).ready(function() {
+        var calendar = $('#calendar').fullCalendar({
+            defaultView: 'agendaWeek',
+            scrollTime: '08:00:00',
+            height: 650,
+            events: eventsArr,
+            eventMouseover: function(calEvent, jsEvent) {
+                var tooltip = '<div class="tooltip">' + calEvent.dataTooltip + '</div>';
+                $('body').append(tooltip);
+                $(this).mouseover(function(e) {
+                    $(this).css('z-index', 10000);
+                    $('.tooltip').fadeIn('500');
+                    $('.tooltip').fadeTo('10', 1.9);
+                }).mousemove(function(e) {
+                    $('.tooltip').css('top', e.pageY + 10);
+                    $('.tooltip').css('left', e.pageX + 20);
+                });
+            },
+            eventMouseout: function(calEvent, jsEvent) {
+                $(this).css('z-index', 8);
+                $('.tooltip').remove();
+            }
+        });
+
+        // Define click handlers for buttons
+        $("#dayButton").click(function() {
+            calendar.fullCalendar('changeView', 'agendaDay');
+        });
+
+        $("#weekButton").click(function() {
+            calendar.fullCalendar('changeView', 'agendaWeek');
+        });
+
+        $("#monthButton").click(function() {
+            calendar.fullCalendar('changeView', 'month');
+        });
+
+        calendar.fullCalendar('addEventSource', eventsArr);
+    });
+</script>
+</body>
+</html>
+
