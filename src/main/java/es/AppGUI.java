@@ -11,6 +11,7 @@ import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,12 +38,12 @@ public class AppGUI extends JFrame {
     }
 
     private void initComponents() {
-        JRadioButton launchHtmlRadioButton;
+        JButton launchHtmlButton;
         JButton convertButton;
         JLabel inputLabel;
         // Set up the main frame
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setTitle("CSV/JSON Converter");
+        setTitle("Calendar Tools");
         setResizable(false);
 
         // Set up the content pane
@@ -66,14 +67,11 @@ public class AppGUI extends JFrame {
         ButtonGroup buttonGroup = new ButtonGroup();
         csvToJsonRadioButton = new JRadioButton("CSV to JSON");
         jsonToCsvRadioButton = new JRadioButton("JSON to CSV");
-        launchHtmlRadioButton = new JRadioButton("Launch HTML");
         buttonGroup.add(csvToJsonRadioButton);
         buttonGroup.add(jsonToCsvRadioButton);
-        buttonGroup.add(launchHtmlRadioButton);
         csvToJsonRadioButton.setSelected(true);
         radioButtonPanel.add(csvToJsonRadioButton);
         radioButtonPanel.add(jsonToCsvRadioButton);
-        radioButtonPanel.add(launchHtmlRadioButton);
         contentPane.add(radioButtonPanel);
 
         // Set up the convert button
@@ -82,7 +80,23 @@ public class AppGUI extends JFrame {
         convertButton = new JButton("Convert");
         convertButton.addActionListener(e -> convertButtonActionPerformed());
         buttonPanel.add(convertButton);
+
+        // Set up the launch HTML button
+        launchHtmlButton = new JButton("Launch HTML");
+        launchHtmlButton.addActionListener(e -> launchHtml(inputFileTextField.getText()));
+        buttonPanel.add(launchHtmlButton);
+
         contentPane.add(buttonPanel);
+
+        JButton getCalendarButton = new JButton("Get calendar from Fenix");
+        getCalendarButton.addActionListener(e -> getCalendarButtonActionPerformed());
+        JPanel buttonPanel2 = new JPanel();
+        buttonPanel2.setLayout(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel2.add(convertButton);
+        buttonPanel2.add(launchHtmlButton);
+        buttonPanel2.add(getCalendarButton);
+        contentPane.add(buttonPanel2);
+
 
         // Pack the frame and center it on the screen
         pack();
@@ -97,8 +111,6 @@ public class AppGUI extends JFrame {
             option = 1;
         } else if (jsonToCsvRadioButton.isSelected()) {
             option = 2;
-        } else {
-            option = 3;
         }
         String inputFileOrUrl = inputFileTextField.getText();
         try {
@@ -109,9 +121,6 @@ public class AppGUI extends JFrame {
                 case 2:
                     jsonToCsv(inputFileOrUrl);
                     break;
-                case 3:
-                    launchHtml(inputFileOrUrl);
-                    break;
                 default:
                     throw new IllegalArgumentException("Invalid option: " + option);
             }
@@ -120,6 +129,7 @@ public class AppGUI extends JFrame {
         }
         System.exit(0);
     }
+
 
 
     public void csvToJson(String inputFileOrUrl) {
@@ -153,7 +163,7 @@ public class AppGUI extends JFrame {
     }
 
     public InputStream getInputStream(String inputFileOrUrl) throws IOException {
-        InputStream inputStream = null;
+        InputStream inputStream;
         if (inputFileOrUrl.startsWith("http") || inputFileOrUrl.startsWith("https")) {
             URL url = new URL(inputFileOrUrl);
             URLConnection connection = url.openConnection();
@@ -226,5 +236,46 @@ public class AppGUI extends JFrame {
             JOptionPane.showMessageDialog(this, "Error launching HTML page: " + e.getMessage(), error, JOptionPane.ERROR_MESSAGE);
         }
     }
+
+    private void getCalendarButtonActionPerformed() {
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+        JLabel urlLabel = new JLabel("Fenix calendar URL:");
+        JTextField urlTextField = new JTextField(30);
+        inputPanel.add(urlLabel);
+        inputPanel.add(urlTextField);
+
+        int result = JOptionPane.showConfirmDialog(null, inputPanel, "Enter Fenix Calendar URL", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            String url = urlTextField.getText();
+            url = url.replace("webcal://", "https://");
+
+            try {
+                URL website = new URL(url);
+                InputStream in = website.openStream();
+                Files.copy(in, Paths.get("src/main/resources/fenix_calendar.ics"), StandardCopyOption.REPLACE_EXISTING);
+                launchHtmlWithIcs();
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(null, "Error downloading calendar: " + e.getMessage());
+            }
+        }
+    }
+
+    private void launchHtmlWithIcs() {
+        try {
+            String relativePath = "src/main/resources/fenix_calendar.html";
+            File file = new File(relativePath);
+            URI uri = file.toURI();
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().browse(uri);
+            }
+        } catch (IOException e) {
+            logger.error("Error launching HTML page", e);
+            JOptionPane.showMessageDialog(this, "Error launching HTML page: " + e.getMessage(), error, JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
+
 
 }
