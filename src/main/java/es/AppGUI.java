@@ -1,48 +1,61 @@
 package es;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.json.CDL;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONTokener;
 
+import javax.servlet.DispatcherType;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.EnumSet;
 import java.util.stream.Collectors;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONTokener;
 
 public class AppGUI extends JFrame {
 
-    private static final Logger logger = LogManager.getLogger(AppGUI.class);
+    public static final Logger logger = LogManager.getLogger(AppGUI.class);
 
     private JTextField inputFileTextField;
     private JRadioButton csvToJsonRadioButton;
     private JRadioButton jsonToCsvRadioButton;
     private String error = "Error";
+    private Server server;
 
     public static void main(String[] args) {
         AppGUI app = new AppGUI();
         app.start();
     }
 
+
     public void start() {
         initComponents();
     }
 
     private void initComponents() {
-        JRadioButton launchHtmlRadioButton;
+        JButton launchHtmlButton;
         JButton convertButton;
         JLabel inputLabel;
         // Set up the main frame
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setTitle("CSV/JSON Converter");
+        setTitle("Calendar Tools");
         setResizable(false);
 
         // Set up the content pane
@@ -66,14 +79,11 @@ public class AppGUI extends JFrame {
         ButtonGroup buttonGroup = new ButtonGroup();
         csvToJsonRadioButton = new JRadioButton("CSV to JSON");
         jsonToCsvRadioButton = new JRadioButton("JSON to CSV");
-        launchHtmlRadioButton = new JRadioButton("Launch HTML");
         buttonGroup.add(csvToJsonRadioButton);
         buttonGroup.add(jsonToCsvRadioButton);
-        buttonGroup.add(launchHtmlRadioButton);
         csvToJsonRadioButton.setSelected(true);
         radioButtonPanel.add(csvToJsonRadioButton);
         radioButtonPanel.add(jsonToCsvRadioButton);
-        radioButtonPanel.add(launchHtmlRadioButton);
         contentPane.add(radioButtonPanel);
 
         // Set up the convert button
@@ -82,7 +92,23 @@ public class AppGUI extends JFrame {
         convertButton = new JButton("Convert");
         convertButton.addActionListener(e -> convertButtonActionPerformed());
         buttonPanel.add(convertButton);
+
+        // Set up the launch HTML button
+        launchHtmlButton = new JButton("Launch HTML");
+        launchHtmlButton.addActionListener(e -> launchHtml(inputFileTextField.getText()));
+        buttonPanel.add(launchHtmlButton);
+
         contentPane.add(buttonPanel);
+
+        JButton getCalendarButton = new JButton("Get calendar from Fenix");
+        getCalendarButton.addActionListener(e -> getCalendarButtonActionPerformed());
+        JPanel buttonPanel2 = new JPanel();
+        buttonPanel2.setLayout(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel2.add(convertButton);
+        buttonPanel2.add(launchHtmlButton);
+        buttonPanel2.add(getCalendarButton);
+        contentPane.add(buttonPanel2);
+
 
         // Pack the frame and center it on the screen
         pack();
@@ -97,8 +123,6 @@ public class AppGUI extends JFrame {
             option = 1;
         } else if (jsonToCsvRadioButton.isSelected()) {
             option = 2;
-        } else {
-            option = 3;
         }
         String inputFileOrUrl = inputFileTextField.getText();
         try {
@@ -109,9 +133,6 @@ public class AppGUI extends JFrame {
                 case 2:
                     jsonToCsv(inputFileOrUrl);
                     break;
-                case 3:
-                    launchHtml(inputFileOrUrl);
-                    break;
                 default:
                     throw new IllegalArgumentException("Invalid option: " + option);
             }
@@ -120,6 +141,7 @@ public class AppGUI extends JFrame {
         }
         System.exit(0);
     }
+
 
 
     public void csvToJson(String inputFileOrUrl) {
@@ -153,7 +175,7 @@ public class AppGUI extends JFrame {
     }
 
     public InputStream getInputStream(String inputFileOrUrl) throws IOException {
-        InputStream inputStream = null;
+        InputStream inputStream;
         if (inputFileOrUrl.startsWith("http") || inputFileOrUrl.startsWith("https")) {
             URL url = new URL(inputFileOrUrl);
             URLConnection connection = url.openConnection();
@@ -226,5 +248,85 @@ public class AppGUI extends JFrame {
             JOptionPane.showMessageDialog(this, "Error launching HTML page: " + e.getMessage(), error, JOptionPane.ERROR_MESSAGE);
         }
     }
+
+    private void lauchServer(String file) {
+        server = new Server(8080);
+
+        ServletContextHandler icsHandler = new ServletContextHandler();
+        icsHandler.setContextPath("/");
+        icsHandler.setResourceBase(".");
+        icsHandler.addServlet(CalendarServlet.class, "/fenix_calendar.ics");
+
+        ResourceHandler resourceHandler = new ResourceHandler();
+        resourceHandler.setDirectoriesListed(false);
+        resourceHandler.setWelcomeFiles(new String[] { "index.html" });
+        resourceHandler.setResourceBase("src/main/resources/" + file);
+
+        HandlerList handlers = new HandlerList();
+        handlers.setHandlers(new Handler[] { resourceHandler, icsHandler, new DefaultHandler() });
+
+        ServletContextHandler servletContextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
+        servletContextHandler.setContextPath("/");
+        servletContextHandler.setHandler(handlers);
+        servletContextHandler.addFilter(CrossOriginFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
+
+
+        server.setHandler(servletContextHandler);
+
+        try {
+            server.start();
+            server.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void getCalendarButtonActionPerformed() {
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+        JLabel urlLabel = new JLabel("Fenix calendar URL:");
+        JTextField urlTextField = new JTextField(30);
+        inputPanel.add(urlLabel);
+        inputPanel.add(urlTextField);
+
+        int result = JOptionPane.showConfirmDialog(null, inputPanel, "Enter Fenix Calendar URL", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            String url = urlTextField.getText();
+            url = url.replace("webcal://", "https://");
+
+            try {
+                URL website = new URL(url);
+                InputStream in = website.openStream();
+                Files.copy(in, Paths.get("src/main/resources/fenix_calendar.ics"), StandardCopyOption.REPLACE_EXISTING);
+                launchHtmlWithIcs();
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(null, "Error downloading calendar: " + e.getMessage());
+            }
+        }
+    }
+
+    private void launchHtmlWithIcs() {
+        try {
+            Thread serverThread = new Thread(() -> {
+                    lauchServer("fenix_calendar.html");
+            });
+            serverThread.start();
+
+            String path = "http://localhost:8080/";
+            URI uri = new URI(path);
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().browse(uri);
+            }
+        } catch (IOException | URISyntaxException e) {
+            logger.error("Error launching HTML page", e);
+            JOptionPane.showMessageDialog(this, "Error launching HTML page: " + e.getMessage(), error, JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
+
+
+
+
 
 }
