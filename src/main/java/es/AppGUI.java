@@ -1,37 +1,49 @@
 package es;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.json.CDL;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONTokener;
 
+import javax.servlet.DispatcherType;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.EnumSet;
 import java.util.stream.Collectors;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONTokener;
 
 public class AppGUI extends JFrame {
 
-    private static final Logger logger = LogManager.getLogger(AppGUI.class);
+    public static final Logger logger = LogManager.getLogger(AppGUI.class);
 
     private JTextField inputFileTextField;
     private JRadioButton csvToJsonRadioButton;
     private JRadioButton jsonToCsvRadioButton;
     private String error = "Error";
+    private Server server;
 
     public static void main(String[] args) {
         AppGUI app = new AppGUI();
         app.start();
     }
+
 
     public void start() {
         initComponents();
@@ -237,6 +249,38 @@ public class AppGUI extends JFrame {
         }
     }
 
+    private void lauchServer(String file) {
+        server = new Server(8080);
+
+        ServletContextHandler icsHandler = new ServletContextHandler();
+        icsHandler.setContextPath("/");
+        icsHandler.setResourceBase(".");
+        icsHandler.addServlet(CalendarServlet.class, "/fenix_calendar.ics");
+
+        ResourceHandler resourceHandler = new ResourceHandler();
+        resourceHandler.setDirectoriesListed(false);
+        resourceHandler.setWelcomeFiles(new String[] { "index.html" });
+        resourceHandler.setResourceBase("src/main/resources/" + file);
+
+        HandlerList handlers = new HandlerList();
+        handlers.setHandlers(new Handler[] { resourceHandler, icsHandler, new DefaultHandler() });
+
+        ServletContextHandler servletContextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
+        servletContextHandler.setContextPath("/");
+        servletContextHandler.setHandler(handlers);
+        servletContextHandler.addFilter(CrossOriginFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
+
+
+        server.setHandler(servletContextHandler);
+
+        try {
+            server.start();
+            server.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private void getCalendarButtonActionPerformed() {
         JPanel inputPanel = new JPanel();
         inputPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -263,17 +307,24 @@ public class AppGUI extends JFrame {
 
     private void launchHtmlWithIcs() {
         try {
-            String relativePath = "src/main/resources/fenix_calendar.html";
-            File file = new File(relativePath);
-            URI uri = file.toURI();
+            Thread serverThread = new Thread(() -> {
+                    lauchServer("fenix_calendar.html");
+            });
+            serverThread.start();
+
+            String path = "http://localhost:8080/";
+            URI uri = new URI(path);
             if (Desktop.isDesktopSupported()) {
                 Desktop.getDesktop().browse(uri);
             }
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException e) {
             logger.error("Error launching HTML page", e);
             JOptionPane.showMessageDialog(this, "Error launching HTML page: " + e.getMessage(), error, JOptionPane.ERROR_MESSAGE);
         }
     }
+
+
+
 
 
 
