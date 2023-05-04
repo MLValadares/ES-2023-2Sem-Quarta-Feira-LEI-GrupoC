@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8' />
+  <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+  <title>FullCalendar iCal Example</title>
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css' />
+
+</head>
+<body>
+<div style="display: flex; flex-direction: row; gap: 100px; align-items: center; justify-content: center">
+  <div id='calendar'  style="width: 45%"></div>
+  <div style="width: 45%">
+    <div id="dst_calendar"></div>
+    <button id="export-json">Export as JSON</button>
+    <button id="export-csv">Export as CSV</button>
+  </div>
+</div>
+
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.5.1/main.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ical.js/1.4.0/ical.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.5.1/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.5.1/locales-all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/icalendar@5.5.1/main.global.min.js"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var calendarEl = document.getElementById("calendar");
+    var calendarDst = document.getElementById("dst_calendar");
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: "dayGridMonth",
+      height: 650,
+      editable: true,
+      droppable: true,
+      headerToolbar: {
+        left: "prev,next today",
+        center: "title",
+        right: "dayGridMonth,timeGridWeek,timeGridDay",
+      },
+      events: {
+        url: "src/main/resources/fenix_calendar.ics",
+        format: "ics",
+      },
+    });
+
+
+    var calendar2 = new FullCalendar.Calendar(calendarDst, {
+      initialView: "dayGridMonth",
+      height: 650,
+      headerToolbar: {
+        left: "prev,next today",
+        center: "title",
+        right: "dayGridMonth,timeGridWeek,timeGridDay",
+      },
+      editable: true,
+      droppable: true // will let it receive events!
+    });
+
+    calendar.render();
+    calendar2.render();
+
+    document.getElementById("export-json").addEventListener("click", function() {
+      var events = calendar2.getEvents();
+      var jsonData = JSON.stringify(events, null, 2);
+      var blob = new Blob([jsonData], {type: "application/json"});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.download = "events.json";
+      a.href = url;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById("export-csv").addEventListener("click", function() {
+      var events = calendar2.getEvents();
+      var csvData = "Subject,Start Date,End Date\n";
+      events.forEach(function(event) {
+        var subject = event.title.replace(/,/g, ""); // remove commas from the title
+        var startDate = event.start.toISOString().substring(0, 10);
+        var endDate = event.end.toISOString().substring(0, 10);
+        csvData += subject + "," + startDate + "," + endDate + "\n";
+      });
+      var blob = new Blob([csvData], {type: "text/csv"});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.download = "events.csv";
+      a.href = url;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+  });
+</script>
+</body>
+</html>
