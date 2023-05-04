@@ -1,7 +1,5 @@
 package es;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.DefaultHandler;
@@ -10,9 +8,6 @@ import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.json.CDL;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONTokener;
 
 import javax.servlet.DispatcherType;
 import javax.swing.*;
@@ -28,6 +23,11 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.EnumSet;
 import java.util.stream.Collectors;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONTokener;
 
 public class AppGUI extends JFrame {
 
@@ -289,42 +289,80 @@ public class AppGUI extends JFrame {
         inputPanel.add(urlLabel);
         inputPanel.add(urlTextField);
 
-        int result = JOptionPane.showConfirmDialog(null, inputPanel, "Enter Fenix Calendar URL", JOptionPane.OK_CANCEL_OPTION);
-        if (result == JOptionPane.OK_OPTION) {
-            String url = urlTextField.getText();
-            url = url.replace("webcal://", "https://");
+        JButton webButton = new JButton("See in Web");
+        JButton calendarButton = new JButton("Make new calendar");
+        JButton cancelButton = new JButton("Cancel");
+        inputPanel.add(webButton);
+        inputPanel.add(calendarButton);
+        inputPanel.add(cancelButton);
 
+        webButton.addActionListener(e -> {
             try {
-                URL website = new URL(url);
-                InputStream in = website.openStream();
-                Files.copy(in, Paths.get("src/main/resources/fenix_calendar.ics"), StandardCopyOption.REPLACE_EXISTING);
-                launchHtmlWithIcs();
-            } catch (IOException e) {
-                JOptionPane.showMessageDialog(null, "Error downloading calendar: " + e.getMessage());
+                String url = urlTextField.getText();
+                url = url.replace("webcal://", "https://");
+                saveIcsFile(url);
+                launchHtmlWithIcs(false);
+                closeInputPanel(inputPanel);
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(null, "Error downloading calendar: " + ex.getMessage());
             }
+        });
+
+        calendarButton.addActionListener(e -> {
+            try {
+                String url = urlTextField.getText();
+                url = url.replace("webcal://", "https://");
+                saveIcsFile(url);
+                launchHtmlWithIcs(true);
+                closeInputPanel(inputPanel);
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(null, "Error downloading calendar: " + ex.getMessage());
+            }
+        });
+
+        cancelButton.addActionListener(e -> {
+            closeInputPanel(inputPanel);
+        });
+
+        JDialog dialog = new JDialog();
+        dialog.setContentPane(inputPanel);
+        dialog.pack();
+        dialog.setLocationRelativeTo(null); // Center the dialog on the screen
+        dialog.setVisible(true);
+    }
+
+    private void saveIcsFile(String url) throws IOException {
+        URL website = new URL(url);
+        InputStream in = website.openStream();
+        Files.copy(in, Paths.get("src/main/resources/fenix_calendar.ics"), StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    private void closeInputPanel(JPanel inputPanel) {
+        Window window = SwingUtilities.getWindowAncestor(inputPanel);
+        if (window != null) {
+            window.dispose();
         }
     }
 
-    private void launchHtmlWithIcs() {
+    private void launchHtmlWithIcs(boolean new_calendar) {
         try {
-            Thread serverThread = new Thread(() -> {
-                    lauchServer("fenix_calendar.html");
-            });
-            serverThread.start();
-
+            if (new_calendar)
+                lauchServer("new_calendar_from_another.html");
+            else
+                lauchServer("fenix_calendar.html");
             String path = "http://localhost:8080/";
             URI uri = new URI(path);
             if (Desktop.isDesktopSupported()) {
                 Desktop.getDesktop().browse(uri);
             }
-        } catch (IOException | URISyntaxException e) {
+        } catch (IOException e) {
             logger.error("Error launching HTML page", e);
             JOptionPane.showMessageDialog(this, "Error launching HTML page: " + e.getMessage(), error, JOptionPane.ERROR_MESSAGE);
+        } catch (URISyntaxException e) {
+            logger.error("Error launching server", e);
+            JOptionPane.showMessageDialog(this, "Error launching server: " + e.getMessage(), error, JOptionPane.ERROR_MESSAGE);
         }
     }
-
-
-
 
 
 
