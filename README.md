@@ -10,6 +10,9 @@ Este repositório Git contém o projeto de Engenharia de Software a ser desenvol
 - Francisco Alves Lopes Ramos de Campos - 98038 - Campos1904
 - Daniel Pesqueira Morgado - 98598 - CookieBeer
 
+## Tags
+A ser desenvolvido
+
 ## Erros
 A ser desenvolvido
 
@@ -24,3 +27,10 @@ Fizemos testes unitários com cobertura de 54,4%
 No entanto, muita da nossa aplicação é de carácter GUI, logo esta cobertura não deve ser levada como medição exata  
 Mesmo assim, fizemos testes unitários para cobrir +/- 50% de cobertura
 ![imagem](https://user-images.githubusercontent.com/125281438/236444353-f22fa99e-7592-40fc-8580-e554ae027e9c.png)
+
+## Avaliação do SonarCloud
+No SonarCloud, a avaliação obtida é a seguinte:
+
+## Adoção de boas práticas de programação
+No nosso trabalhos usamos alguma práticas de programação
+- CI\CD Github Actions: No nosso projeto temos um workflow para Build e Javadoc
