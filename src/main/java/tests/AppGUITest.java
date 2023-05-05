@@ -31,8 +31,13 @@ class AppGUITest {
 	}
 	
 	@Test
-	void launchHTML() {
+	void launchHTMLCSV() {
 		assertTrue(app.launchHtml("C:\\Users\\Miguel\\git\\ES-2023-2Sem-Quarta-Feira-LEI-GrupoC\\src\\main\\resources\\horario-exemplo.csv"));
+	}
+	
+	@Test
+	void launchHTMLJSON() {
+		assertTrue(app.launchHtml("C:\\Users\\Miguel\\git\\ES-2023-2Sem-Quarta-Feira-LEI-GrupoC\\src\\main\\resources\\output.csv"));
 	}
 
 //	@Test
