@@ -29,9 +29,19 @@ class AppGUITest {
 	void convertJSONtoCSVLocalTest(){
 		assertTrue(app.jsonToCsv("C:\\Users\\Miguel\\git\\ES-2023-2Sem-Quarta-Feira-LEI-GrupoC\\src\\main\\resources\\output.json"));
 	}
-
+	
 	@Test
-	void test() {
-		assertTrue(app.initComponents());
+	void launchHTML() {
+		assertTrue(app.launchHtml("C:\\Users\\Miguel\\git\\ES-2023-2Sem-Quarta-Feira-LEI-GrupoC\\src\\main\\resources\\horario-exemplo.csv"));
 	}
+
+//	@Test
+//	void test() {
+//		assertTrue(app.start());
+//	}
+	
+//	@Test
+//	void ah() {
+//		app.launchHtmlWithIcs(true);
+//	}
 }

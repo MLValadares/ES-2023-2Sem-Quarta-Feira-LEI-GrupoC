@@ -45,14 +45,15 @@ public class AppGUI extends JFrame {
     }
 
 
-    public void start() {
+    public boolean start() {
         initComponents();
+        return true;
     }
 
     /**
      * Description: Esta função serve para construir o GUI que irá ser utilizado pelo utilizador para converter os ficheiros
      */
-    public boolean initComponents() {
+    public void initComponents() {
         JButton launchHtmlButton;
         JButton convertButton;
         JLabel inputLabel;
@@ -117,7 +118,6 @@ public class AppGUI extends JFrame {
         pack();
         setLocationRelativeTo(null);
         setVisible(true);
-        return true;
     }
 
 
@@ -206,7 +206,7 @@ public class AppGUI extends JFrame {
         }
     }
 
-    private void launchHtml(String inputFileOrUrl) {
+    public boolean launchHtml(String inputFileOrUrl) {
         String fileExtension = inputFileOrUrl.substring(inputFileOrUrl.lastIndexOf(".") + 1).toLowerCase();
         if (fileExtension.equals("csv")) {
             // convert CSV to JSON first
@@ -233,6 +233,7 @@ public class AppGUI extends JFrame {
             // invalid file type
             JOptionPane.showMessageDialog(this, "Invalid file type: " + fileExtension, error, JOptionPane.ERROR_MESSAGE);
         }
+        return true;
     }
 
     private void launchHtmlWithJson(String jsonFilePath) {
