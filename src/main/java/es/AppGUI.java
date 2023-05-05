@@ -1,14 +1,27 @@
-
 package es;
 
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.json.CDL;
 
+import javax.servlet.DispatcherType;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.EnumSet;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,20 +31,20 @@ import org.json.JSONTokener;
 
 public class AppGUI extends JFrame {
 
-    private static final Logger logger = LogManager.getLogger(AppGUI.class);
+    public static final Logger logger = LogManager.getLogger(AppGUI.class);
 
     private JTextField inputFileTextField;
     private JRadioButton csvToJsonRadioButton;
+    private JRadioButton jsonToCsvRadioButton;
     private String error = "Error";
+    private Server server;
 
     public static void main(String[] args) {
         AppGUI app = new AppGUI();
         app.start();
     }
 
-    /**
-     * Description: Esta função irá iniciar a GUI
-     */
+
     public void start() {
         initComponents();
     }
@@ -39,13 +52,13 @@ public class AppGUI extends JFrame {
     /**
      * Description: Esta função serve para construir o GUI que irá ser utilizado pelo utilizador para converter os ficheiros
      */
-    public boolean initComponents() {
-        JRadioButton jsonToCsvRadioButton;
+    private void initComponents() {
+        JButton launchHtmlButton;
         JButton convertButton;
         JLabel inputLabel;
         // Set up the main frame
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setTitle("CSV/JSON Converter");
+        setTitle("Calendar Tools");
         setResizable(false);
 
         // Set up the content pane
@@ -82,7 +95,23 @@ public class AppGUI extends JFrame {
         convertButton = new JButton("Convert");
         convertButton.addActionListener(e -> convertButtonActionPerformed());
         buttonPanel.add(convertButton);
+
+        // Set up the launch HTML button
+        launchHtmlButton = new JButton("Launch HTML");
+        launchHtmlButton.addActionListener(e -> launchHtml(inputFileTextField.getText()));
+        buttonPanel.add(launchHtmlButton);
+
         contentPane.add(buttonPanel);
+
+        JButton getCalendarButton = new JButton("Get calendar from Fenix");
+        getCalendarButton.addActionListener(e -> getCalendarButtonActionPerformed());
+        JPanel buttonPanel2 = new JPanel();
+        buttonPanel2.setLayout(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel2.add(convertButton);
+        buttonPanel2.add(launchHtmlButton);
+        buttonPanel2.add(getCalendarButton);
+        contentPane.add(buttonPanel2);
+
 
         // Pack the frame and center it on the screen
         pack();
@@ -91,12 +120,14 @@ public class AppGUI extends JFrame {
 		return true;
     }
 
-    /**
-     * Description: Esta função irá guardar na variável option os valores 1 ou 2 dependendo que opção o utilizador escolher selecionar no radioButton
-     *            para converter ou de um ficheiro CSV para Json ou Json para CSV respetivamente. Ao acabar a conversão o programa acaba
-     */
+
     private void convertButtonActionPerformed() {
-        int option = csvToJsonRadioButton.isSelected() ? 1 : 2;
+        int option = 0;
+        if (csvToJsonRadioButton.isSelected()) {
+            option = 1;
+        } else if (jsonToCsvRadioButton.isSelected()) {
+            option = 2;
+        }
         String inputFileOrUrl = inputFileTextField.getText();
         try {
             switch (option) {
@@ -116,13 +147,7 @@ public class AppGUI extends JFrame {
     }
 
 
-    /**
-     * Description: Esta função através do input do utilizador irá fazer a conversão do tipo do ficheiro e caso haja um erro no input do user
-     *            é mostrada a mensagem de erro relativa à IOException ou o erro esteja na transição do formato é mostrada a mensagem de erro
-     *            relativa à JSONException
-     *
-     * @param inputFileOrUrl sendo inputFileOrUrl o path ou URL do ficheiro introduzido pelo user
-     */
+
     public void csvToJson(String inputFileOrUrl) {
         try (InputStream inputStream = getInputStream(inputFileOrUrl);
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
@@ -138,13 +163,6 @@ public class AppGUI extends JFrame {
         }
     }
 
-    /**
-     * Description: Esta função através do input do utilizador irá fazer a conversão do tipo do ficheiro e caso haja um erro no input do user
-     *            é mostrada a mensagem de erro relativa à IOException ou o erro esteja na transição do formato é mostrada a mensagem de erro
-     *            relativa à JSONException
-     *
-     * @param inputFileOrUrl sendo inputFileOrUrl o path ou URL do ficheiro introduzido pelo user
-     */
     public void jsonToCsv(String inputFileOrUrl) {
         try (InputStream inputStream = getInputStream(inputFileOrUrl);
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
@@ -160,16 +178,8 @@ public class AppGUI extends JFrame {
         }
     }
 
-    /**
-     * Description: Esta função, através do inputFileorUrl, sendo este a string do path ou do URL do ficheiro, guarda o input do utilizador na variável
-     *            inputStream para esta ser utilizada na conversão
-     *
-     * @param inputFileOrUrl sendo inputFileorURl o path ou o URL do ficheiro introduzido pelo user
-     * @return inputStream sendo inputStream o URL ou o path do ficheiro introduzido pelo user em formato InputStream
-     * @throws IOException caso haja um erro relativamente ao input do utilizador
-     */
     public InputStream getInputStream(String inputFileOrUrl) throws IOException {
-        InputStream inputStream = null;
+        InputStream inputStream;
         if (inputFileOrUrl.startsWith("http") || inputFileOrUrl.startsWith("https")) {
             URL url = new URL(inputFileOrUrl);
             URLConnection connection = url.openConnection();
@@ -180,13 +190,6 @@ public class AppGUI extends JFrame {
         return inputStream;
     }
 
-    /**
-     * Description: Esta função serve para guardar o conteúdo de um ficheiro, dado pelo parâmetro content, no tipo pretendido, dado pelo parâmetro type
-     *
-     * @param type sendo type o tipo que o ficheiro irá ter
-     * @param content sendo content o conteúdo do ficheiro que irá ser guardado
-     * @throws java.io.IOException caso haja um erro ao guardar o ficheiro
-     */
     private void saveFile(String type, String content) throws java.io.IOException{
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Save " + type + " File");
@@ -200,5 +203,172 @@ public class AppGUI extends JFrame {
             JOptionPane.showMessageDialog(this, "Successfully converted to: " + fileToSave.getAbsolutePath(), "Success", JOptionPane.INFORMATION_MESSAGE);
         }
     }
-}
 
+    private void launchHtml(String inputFileOrUrl) {
+        String fileExtension = inputFileOrUrl.substring(inputFileOrUrl.lastIndexOf(".") + 1).toLowerCase();
+        if (fileExtension.equals("csv")) {
+            // convert CSV to JSON first
+            try (InputStream inputStream = getInputStream(inputFileOrUrl);
+                 BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+                String csvAsString = reader.lines().collect(Collectors.joining("\n"));
+                String json = CDL.toJSONArray(csvAsString).toString();
+                String jsonFileName = inputFileOrUrl.substring(0, inputFileOrUrl.lastIndexOf(".")) + ".json";
+                try (FileWriter fileWriter = new FileWriter(jsonFileName)) {
+                    fileWriter.write(json);
+                }
+                launchHtmlWithJson(jsonFileName);
+            } catch (IOException e) {
+                logger.error("Error converting CSV to JSON", e);
+                JOptionPane.showMessageDialog(this, "Error converting CSV to JSON: " + e.getMessage(), error, JOptionPane.ERROR_MESSAGE);
+            } catch (JSONException e) {
+                logger.error("Invalid CSV format", e);
+                JOptionPane.showMessageDialog(this, "Invalid CSV format: " + e.getMessage(), error, JOptionPane.ERROR_MESSAGE);
+            }
+        } else if (fileExtension.equals("json")) {
+            // directly launch HTML page with JSON file
+            launchHtmlWithJson(inputFileOrUrl);
+        } else {
+            // invalid file type
+            JOptionPane.showMessageDialog(this, "Invalid file type: " + fileExtension, error, JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void launchHtmlWithJson(String jsonFilePath) {
+        try {
+            String relativePath = "src/main/resources/calendar.html";
+            File file = new File(relativePath);
+            URI uri = file.toURI();
+            String jsonString = new String(Files.readAllBytes(Paths.get(jsonFilePath)));
+            String jsString = "var myData = " + jsonString + ";";
+            String jsFilePath = "src/main/resources/data.js";
+            try (FileWriter fileWriter = new FileWriter(jsFilePath)) {
+                fileWriter.write(jsString);
+            }
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().browse(uri);
+            }
+        } catch (IOException e) {
+            logger.error("Error launching HTML page", e);
+            JOptionPane.showMessageDialog(this, "Error launching HTML page: " + e.getMessage(), error, JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void lauchServer(String file) {
+        server = new Server(8080);
+
+        ServletContextHandler icsHandler = new ServletContextHandler();
+        icsHandler.setContextPath("/");
+        icsHandler.setResourceBase(".");
+        icsHandler.addServlet(CalendarServlet.class, "/fenix_calendar.ics");
+
+        ResourceHandler resourceHandler = new ResourceHandler();
+        resourceHandler.setDirectoriesListed(false);
+        resourceHandler.setWelcomeFiles(new String[] { "index.html" });
+        resourceHandler.setResourceBase("src/main/resources/" + file);
+
+        HandlerList handlers = new HandlerList();
+        handlers.setHandlers(new Handler[] { resourceHandler, icsHandler, new DefaultHandler() });
+
+        ServletContextHandler servletContextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
+        servletContextHandler.setContextPath("/");
+        servletContextHandler.setHandler(handlers);
+        servletContextHandler.addFilter(CrossOriginFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
+
+
+        server.setHandler(servletContextHandler);
+
+        try {
+            server.start();
+            server.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void getCalendarButtonActionPerformed() {
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+        JLabel urlLabel = new JLabel("Fenix calendar URL:");
+        JTextField urlTextField = new JTextField(30);
+        inputPanel.add(urlLabel);
+        inputPanel.add(urlTextField);
+
+        JButton webButton = new JButton("See in Web");
+        JButton calendarButton = new JButton("Make new calendar");
+        JButton cancelButton = new JButton("Cancel");
+        inputPanel.add(webButton);
+        inputPanel.add(calendarButton);
+        inputPanel.add(cancelButton);
+
+        webButton.addActionListener(e -> {
+            try {
+                String url = urlTextField.getText();
+                url = url.replace("webcal://", "https://");
+                saveIcsFile(url);
+                launchHtmlWithIcs(false);
+                closeInputPanel(inputPanel);
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(null, "Error downloading calendar: " + ex.getMessage());
+            }
+        });
+
+        calendarButton.addActionListener(e -> {
+            try {
+                String url = urlTextField.getText();
+                url = url.replace("webcal://", "https://");
+                saveIcsFile(url);
+                launchHtmlWithIcs(true);
+                closeInputPanel(inputPanel);
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(null, "Error downloading calendar: " + ex.getMessage());
+            }
+        });
+
+        cancelButton.addActionListener(e -> {
+            closeInputPanel(inputPanel);
+        });
+
+        JDialog dialog = new JDialog();
+        dialog.setContentPane(inputPanel);
+        dialog.pack();
+        dialog.setLocationRelativeTo(null); // Center the dialog on the screen
+        dialog.setVisible(true);
+    }
+
+    private void saveIcsFile(String url) throws IOException {
+        URL website = new URL(url);
+        InputStream in = website.openStream();
+        Files.copy(in, Paths.get("src/main/resources/fenix_calendar.ics"), StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    private void closeInputPanel(JPanel inputPanel) {
+        Window window = SwingUtilities.getWindowAncestor(inputPanel);
+        if (window != null) {
+            window.dispose();
+        }
+    }
+
+    private void launchHtmlWithIcs(boolean new_calendar) {
+        try {
+            if (new_calendar)
+                lauchServer("new_calendar_from_another.html");
+            else
+                lauchServer("fenix_calendar.html");
+            String path = "http://localhost:8080/";
+            URI uri = new URI(path);
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().browse(uri);
+            }
+        } catch (IOException e) {
+            logger.error("Error launching HTML page", e);
+            JOptionPane.showMessageDialog(this, "Error launching HTML page: " + e.getMessage(), error, JOptionPane.ERROR_MESSAGE);
+        } catch (URISyntaxException e) {
+            logger.error("Error launching server", e);
+            JOptionPane.showMessageDialog(this, "Error launching server: " + e.getMessage(), error, JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
+
+
+}

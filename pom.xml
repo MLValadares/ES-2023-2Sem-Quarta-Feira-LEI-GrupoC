@@ -32,15 +32,29 @@
             <version>2.20.0</version>
         </dependency>
         <dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-engine</artifactId>
-			<version>5.2.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.junit.platform</groupId>
-			<artifactId>junit-platform-runner</artifactId>
-			<version>1.2.0</version>
-		</dependency>
+            <groupId>org.junit.jupiter</groupId>
+			      <artifactId>junit-jupiter-engine</artifactId>
+			      <version>5.2.0</version>
+		    </dependency>
+		    <dependency>
+			      <groupId>org.junit.platform</groupId>
+			      <artifactId>junit-platform-runner</artifactId>
+			      <version>1.2.0</version>
+		    </dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-server</artifactId>
+            <version>9.4.43.v20210629</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlet</artifactId>
+            <version>9.4.43.v20210629</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlets</artifactId>
+            <version>9.4.43.v20210629</version>
+        </dependency>
     </dependencies>
 
 </project>
