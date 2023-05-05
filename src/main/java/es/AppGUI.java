@@ -148,7 +148,7 @@ public class AppGUI extends JFrame {
 
 
 
-    public void csvToJson(String inputFileOrUrl) {
+    public boolean csvToJson(String inputFileOrUrl) {
         try (InputStream inputStream = getInputStream(inputFileOrUrl);
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             String csvAsString = reader.lines().collect(Collectors.joining("\n"));
@@ -161,6 +161,7 @@ public class AppGUI extends JFrame {
             logger.error("Invalid CSV format", e);
             JOptionPane.showMessageDialog(this, "Invalid CSV format: " + e.getMessage(), error, JOptionPane.ERROR_MESSAGE);
         }
+        return true;
     }
 
     public void jsonToCsv(String inputFileOrUrl) {

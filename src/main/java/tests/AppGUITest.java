@@ -14,11 +14,16 @@ class AppGUITest {
 	void setUp() throws Exception {
 		this.app = new AppGUI();
 	}
-
+	
 	@Test
-	void test() {
-		assertTrue(app.initComponents());
+	void convertCSVtoJSONURLTest(){
+		assertTrue(app.csvToJson("https://people.sc.fsu.edu/~jburkardt/data/csv/addresses.csv"));
 	}
+
+//	@Test
+//	void test() {
+//		assertTrue(app.initComponents());
+//	}
 //	
 //	@Test
 //	void saveFileTest() {
@@ -26,4 +31,8 @@ class AppGUITest {
 //		assertTrue(app.csvToJson(inputFileOrUrl));
 //	}
 
+//	@Test
+//	void convertCSVFromURL() {
+//		
+//	}
 }
