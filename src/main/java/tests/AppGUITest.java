@@ -9,9 +9,11 @@ import es.AppGUI;
 
 class AppGUITest {
 	private AppGUI app;
+	private String k;
 
 	@BeforeEach
 	void setUp() throws Exception {
+		k = System.getProperty("user.dir");
 		this.app = new AppGUI();
 	}
 	
@@ -22,25 +24,21 @@ class AppGUITest {
 	
 	@Test
 	void convertCSVtoJSONLocalTest(){
-		String k = System.getProperty("user.dir");
 		assertTrue(app.csvToJson(k + "\\src\\main\\resources\\horario-exemplo.csv"));
 	}
 	
 	@Test
 	void convertJSONtoCSVLocalTest(){
-		String k = System.getProperty("user.dir");
 		assertTrue(app.jsonToCsv(k + "\\src\\main\\resources\\output.json"));
 	}
 	
 	@Test
 	void launchHTMLCSV() {
-		String k = System.getProperty("user.dir");
 		assertTrue(app.launchHtml(k + "\\src\\main\\resources\\horario-exemplo.csv"));
 	}
 	
 	@Test
 	void launchHTMLJSON() {
-		String k = System.getProperty("user.dir");
 		assertTrue(app.launchHtml(k + "\\src\\main\\resources\\output.csv"));
 	}
 	
