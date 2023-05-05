@@ -19,20 +19,19 @@ class AppGUITest {
 	void convertCSVtoJSONURLTest(){
 		assertTrue(app.csvToJson("https://people.sc.fsu.edu/~jburkardt/data/csv/addresses.csv"));
 	}
+	
+	@Test
+	void convertCSVtoJSONLocalTest(){
+		assertTrue(app.csvToJson("C:\\Users\\Miguel\\git\\ES-2023-2Sem-Quarta-Feira-LEI-GrupoC\\src\\main\\resources\\horario-exemplo.csv"));
+	}
+	
+	@Test
+	void convertJSONtoCSVLocalTest(){
+		assertTrue(app.jsonToCsv("C:\\Users\\Miguel\\git\\ES-2023-2Sem-Quarta-Feira-LEI-GrupoC\\src\\main\\resources\\output.json"));
+	}
 
-//	@Test
-//	void test() {
-//		assertTrue(app.initComponents());
-//	}
-//	
-//	@Test
-//	void saveFileTest() {
-//		String inputFileOrUrl = "C:\\Users\\Miguel\\Desktop\\ES\\res\\horario-exemplo.csv";
-//		assertTrue(app.csvToJson(inputFileOrUrl));
-//	}
-
-//	@Test
-//	void convertCSVFromURL() {
-//		
-//	}
+	@Test
+	void test() {
+		assertTrue(app.initComponents());
+	}
 }
