@@ -53,45 +53,4 @@ class AppTest {
 		System.out.println("Deve Introduzir: " + k + "\\src\\main\\resources\\output.csv");
 		assertTrue(app.appStart());
 	}
-	
-//	@Test
-//	void getOption1Test() {
-//		System.out.println("Pressionar opcao 1");
-//		assertEquals(app.getFlowOption(),1);
-//	}
-//	
-//	@Test
-//	void getOption2Test() {
-//		System.out.println("Pressionar opcao 2");
-//		assertEquals(app.getFlowOption(),2);
-//	}
-	
-//	@Test
-//	void getOptionExceptionTest() {
-//		System.out.println("Pressionar opcao a");
-//		assertThrows(Exception.class, () -> app.getFlowOption());
-//	}
-	
-//	@Test
-//	void convertCSVFromURL() {
-//		String str = "https://people.sc.fsu.edu/~jburkardt/data/csv/addresses.csv";
-//	}
-	
-	
-//	@Test
-//	void getInputStreamURLTest() {
-//		System.out.println("Teste de obter ficheiro via URL");
-//		System.out.println("Deve Introduzir: https://people.sc.fsu.edu/~jburkardt/data/csv/addresses.csv");
-//		InputStream inputStream = null;
-//		assertNotSame(app.getInputStream(),inputStream);
-//	}
-	
-//	@Test
-//	void getInputStreamFileNotFoundException() {
-//		System.out.println("Teste MalformedURLException");
-//		System.out.println("a");
-//		Throwable exception = assertThrows(MalformedURLException.class, () -> app.getInputStream());
-////		InputStream inputStream = null;
-////		assertNotSame(app.getInputStream(),inputStream);
-//	}
 }

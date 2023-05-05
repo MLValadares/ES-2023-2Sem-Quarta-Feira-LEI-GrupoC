@@ -43,14 +43,10 @@ class AppGUITest {
 		String k = System.getProperty("user.dir");
 		assertTrue(app.launchHtml(k + "\\src\\main\\resources\\output.csv"));
 	}
-
-//	@Test
-//	void test() {
-//		assertTrue(app.start());
-//	}
 	
-//	@Test
-//	void ah() {
-//		app.launchHtmlWithIcs(true);
-//	}
+	@Test
+	void getCalendarButtonActionPerformedTest() {
+		app.getCalendarButtonActionPerformed();
+	}
+
 }

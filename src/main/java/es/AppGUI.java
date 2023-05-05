@@ -288,7 +288,7 @@ public class AppGUI extends JFrame {
         }
     }
 
-    private void getCalendarButtonActionPerformed() {
+    public boolean getCalendarButtonActionPerformed() {
         JPanel inputPanel = new JPanel();
         inputPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
         JLabel urlLabel = new JLabel("Fenix calendar URL:");
@@ -336,6 +336,7 @@ public class AppGUI extends JFrame {
         dialog.pack();
         dialog.setLocationRelativeTo(null); // Center the dialog on the screen
         dialog.setVisible(true);
+        return true;
     }
 
     private void saveIcsFile(String url) throws IOException {
