@@ -40,7 +40,8 @@ class AppTest {
 	void convertCSVtoJSONLocalTest() {
 		System.out.println("Teste de converter ficheiro CSV via Local");
 		System.out.println("Introduzir 1");
-		System.out.println("Deve Introduzir: C:\\Users\\Miguel\\git\\ES-2023-2Sem-Quarta-Feira-LEI-GrupoC\\src\\main\\resources\\horario-exemplo.csv");
+		String k = System.getProperty("user.dir");
+		System.out.println("Deve Introduzir: " + k + "\\src\\main\\resources\\horario-exemplo.csv");
 		assertTrue(app.appStart());
 	}
 	
@@ -48,7 +49,8 @@ class AppTest {
 	void convertJSONtoCSVURLLocal() {
 		System.out.println("Teste de converter ficheiro JSON via Local");
 		System.out.println("Introduzir 2");
-		System.out.println("Deve Introduzir: C:\\Users\\Miguel\\git\\ES-2023-2Sem-Quarta-Feira-LEI-GrupoC\\src\\main\\resources\\output.csv");
+		String k = System.getProperty("user.dir");
+		System.out.println("Deve Introduzir: " + k + "\\src\\main\\resources\\output.csv");
 		assertTrue(app.appStart());
 	}
 	

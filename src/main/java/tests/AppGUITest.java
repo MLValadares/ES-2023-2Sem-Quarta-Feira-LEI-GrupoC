@@ -22,22 +22,26 @@ class AppGUITest {
 	
 	@Test
 	void convertCSVtoJSONLocalTest(){
-		assertTrue(app.csvToJson("C:\\Users\\Miguel\\git\\ES-2023-2Sem-Quarta-Feira-LEI-GrupoC\\src\\main\\resources\\horario-exemplo.csv"));
+		String k = System.getProperty("user.dir");
+		assertTrue(app.csvToJson(k + "\\src\\main\\resources\\horario-exemplo.csv"));
 	}
 	
 	@Test
 	void convertJSONtoCSVLocalTest(){
-		assertTrue(app.jsonToCsv("C:\\Users\\Miguel\\git\\ES-2023-2Sem-Quarta-Feira-LEI-GrupoC\\src\\main\\resources\\output.json"));
+		String k = System.getProperty("user.dir");
+		assertTrue(app.jsonToCsv(k + "\\src\\main\\resources\\output.json"));
 	}
 	
 	@Test
 	void launchHTMLCSV() {
-		assertTrue(app.launchHtml("C:\\Users\\Miguel\\git\\ES-2023-2Sem-Quarta-Feira-LEI-GrupoC\\src\\main\\resources\\horario-exemplo.csv"));
+		String k = System.getProperty("user.dir");
+		assertTrue(app.launchHtml(k + "\\src\\main\\resources\\horario-exemplo.csv"));
 	}
 	
 	@Test
 	void launchHTMLJSON() {
-		assertTrue(app.launchHtml("C:\\Users\\Miguel\\git\\ES-2023-2Sem-Quarta-Feira-LEI-GrupoC\\src\\main\\resources\\output.csv"));
+		String k = System.getProperty("user.dir");
+		assertTrue(app.launchHtml(k + "\\src\\main\\resources\\output.csv"));
 	}
 
 //	@Test
