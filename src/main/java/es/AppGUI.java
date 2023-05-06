@@ -48,11 +48,15 @@ public class AppGUI extends JFrame {
     }
 
 
-    public void start() {
+    public boolean start() {
         initComponents();
+        return true;
     }
 
-    private void initComponents() {
+    /**
+     * Description: Esta função serve para construir o GUI que irá ser utilizado pelo utilizador para converter os ficheiros
+     */
+    public void initComponents() {
         JButton launchHtmlButton;
         JButton seeOverlapButton;
         JButton convertButton;
@@ -154,7 +158,7 @@ public class AppGUI extends JFrame {
 
 
 
-    public void csvToJson(String inputFileOrUrl) {
+    public boolean csvToJson(String inputFileOrUrl) {
         try (InputStream inputStream = getInputStream(inputFileOrUrl);
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             String csvAsString = reader.lines().collect(Collectors.joining("\n"));
@@ -167,9 +171,10 @@ public class AppGUI extends JFrame {
             logger.error("Invalid CSV format", e);
             JOptionPane.showMessageDialog(this, "Invalid CSV format: " + e.getMessage(), error, JOptionPane.ERROR_MESSAGE);
         }
+        return true;
     }
 
-    public void jsonToCsv(String inputFileOrUrl) {
+    public boolean jsonToCsv(String inputFileOrUrl) {
         try (InputStream inputStream = getInputStream(inputFileOrUrl);
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             JSONArray jsonArray = new JSONArray(new JSONTokener(reader));
@@ -182,6 +187,7 @@ public class AppGUI extends JFrame {
             logger.error("Invalid JSON format", e);
             JOptionPane.showMessageDialog(this, "Invalid JSON format: " + e.getMessage(), error, JOptionPane.ERROR_MESSAGE);
         }
+        return true;
     }
 
     public InputStream getInputStream(String inputFileOrUrl) throws IOException {
@@ -210,7 +216,7 @@ public class AppGUI extends JFrame {
         }
     }
 
-    private void launchHtml(String inputFileOrUrl, boolean overlap) {
+    public void launchHtml(String inputFileOrUrl, boolean overlap) {
         String fileExtension = inputFileOrUrl.substring(inputFileOrUrl.lastIndexOf(".") + 1).toLowerCase();
         if (fileExtension.equals("csv")) {
             // convert CSV to JSON first
@@ -237,6 +243,7 @@ public class AppGUI extends JFrame {
             // invalid file type
             JOptionPane.showMessageDialog(this, "Invalid file type: " + fileExtension, error, JOptionPane.ERROR_MESSAGE);
         }
+        return true;
     }
 
     private void launchHtmlWithJson(String jsonFilePath, boolean seeOverlap) {
@@ -308,7 +315,7 @@ public class AppGUI extends JFrame {
         }
     }
 
-    private void getCalendarButtonActionPerformed() {
+    public boolean getCalendarButtonActionPerformed() {
         JPanel inputPanel = new JPanel();
         inputPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
         JLabel urlLabel = new JLabel("Fenix calendar URL:");
@@ -360,6 +367,7 @@ public class AppGUI extends JFrame {
         dialog.pack();
         dialog.setLocationRelativeTo(null); // Center the dialog on the screen
         dialog.setVisible(true);
+        return true;
     }
 
 
