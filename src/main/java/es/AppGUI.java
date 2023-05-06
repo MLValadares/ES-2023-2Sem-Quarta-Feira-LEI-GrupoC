@@ -216,7 +216,7 @@ public class AppGUI extends JFrame {
         }
     }
 
-    public void launchHtml(String inputFileOrUrl, boolean overlap) {
+    public boolean launchHtml(String inputFileOrUrl, boolean overlap) {
         String fileExtension = inputFileOrUrl.substring(inputFileOrUrl.lastIndexOf(".") + 1).toLowerCase();
         if (fileExtension.equals("csv")) {
             // convert CSV to JSON first
