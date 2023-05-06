@@ -38,12 +38,15 @@ public class AppGUI extends JFrame {
     private JRadioButton csvToJsonRadioButton;
     private JRadioButton jsonToCsvRadioButton;
     private String error = "Error";
+    
     private transient Server server;
+
 
     public static void main(String[] args) {
         AppGUI app = new AppGUI();
         app.start();
     }
+
 
     public void start() {
         initComponents();
@@ -96,6 +99,7 @@ public class AppGUI extends JFrame {
 
         // Set up the launch HTML button
         launchHtmlButton = new JButton("Launch HTML");
+
         launchHtmlButton.addActionListener(e -> launchHtml(inputFileTextField.getText(), false));
         buttonPanel.add(launchHtmlButton);
 
@@ -259,7 +263,9 @@ public class AppGUI extends JFrame {
         }
     }
 
+
     private void launchServer(String file) {
+
         server = new Server(8080);
 
         ServletContextHandler icsHandler = new ServletContextHandler();
@@ -322,7 +328,9 @@ public class AppGUI extends JFrame {
                 String url = urlTextField.getText();
                 url = url.replace("webcal://", "https://");
                 saveIcsFile(url);
+                
                 launchHtmlWithIcs(false, "http://localhost:8080/");
+
                 closeInputPanel(inputPanel);
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(null, "Error downloading calendar: " + ex.getMessage());
@@ -334,14 +342,18 @@ public class AppGUI extends JFrame {
                 String url = urlTextField.getText();
                 url = url.replace("webcal://", "https://");
                 saveIcsFile(url);
+
                 launchHtmlWithIcs(true, "http://localhost:8080/");
+
                 closeInputPanel(inputPanel);
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(null, "Error downloading calendar: " + ex.getMessage());
             }
         });
 
+
         cancelButton.addActionListener(e -> closeInputPanel(inputPanel));
+
 
         JDialog dialog = new JDialog();
         dialog.setContentPane(inputPanel);
@@ -349,6 +361,7 @@ public class AppGUI extends JFrame {
         dialog.setLocationRelativeTo(null); // Center the dialog on the screen
         dialog.setVisible(true);
     }
+
 
     private void saveIcsFile(String url) throws IOException{
         URL website = new URL(url);
@@ -365,6 +378,7 @@ public class AppGUI extends JFrame {
         }
     }
 
+
     private void launchHtmlWithIcs(boolean newCalendar, String url) {
         try {
             Thread serverThread = new Thread(() -> {
@@ -378,6 +392,7 @@ public class AppGUI extends JFrame {
             });
             serverThread.start();
             URI uri = new URI(url);
+
             if (Desktop.isDesktopSupported()) {
                 Desktop.getDesktop().browse(uri);
             }
@@ -390,7 +405,5 @@ public class AppGUI extends JFrame {
         }
     }
 
-
-
-
 }
+
