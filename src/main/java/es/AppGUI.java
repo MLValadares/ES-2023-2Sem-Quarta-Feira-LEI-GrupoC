@@ -19,6 +19,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.EnumSet;
@@ -37,7 +38,9 @@ public class AppGUI extends JFrame {
     private JRadioButton csvToJsonRadioButton;
     private JRadioButton jsonToCsvRadioButton;
     private String error = "Error";
-    private Server server;
+
+    private transient Server server;
+
 
     public static void main(String[] args) {
         AppGUI app = new AppGUI();
@@ -51,6 +54,7 @@ public class AppGUI extends JFrame {
 
     private void initComponents() {
         JButton launchHtmlButton;
+        JButton seeOverlapButton;
         JButton convertButton;
         JLabel inputLabel;
         // Set up the main frame
@@ -95,8 +99,14 @@ public class AppGUI extends JFrame {
 
         // Set up the launch HTML button
         launchHtmlButton = new JButton("Launch HTML");
-        launchHtmlButton.addActionListener(e -> launchHtml(inputFileTextField.getText()));
+
+        launchHtmlButton.addActionListener(e -> launchHtml(inputFileTextField.getText(), false));
         buttonPanel.add(launchHtmlButton);
+
+        // Set up the launch HTML button
+        seeOverlapButton = new JButton("See Overlaps/Overcrows");
+        seeOverlapButton.addActionListener(e -> launchHtml(inputFileTextField.getText(), true));
+        buttonPanel.add(seeOverlapButton);
 
         contentPane.add(buttonPanel);
 
@@ -200,7 +210,7 @@ public class AppGUI extends JFrame {
         }
     }
 
-    private void launchHtml(String inputFileOrUrl) {
+    private void launchHtml(String inputFileOrUrl, boolean overlap) {
         String fileExtension = inputFileOrUrl.substring(inputFileOrUrl.lastIndexOf(".") + 1).toLowerCase();
         if (fileExtension.equals("csv")) {
             // convert CSV to JSON first
@@ -212,7 +222,7 @@ public class AppGUI extends JFrame {
                 try (FileWriter fileWriter = new FileWriter(jsonFileName)) {
                     fileWriter.write(json);
                 }
-                launchHtmlWithJson(jsonFileName);
+                launchHtmlWithJson(jsonFileName, overlap);
             } catch (IOException e) {
                 logger.error("Error converting CSV to JSON", e);
                 JOptionPane.showMessageDialog(this, "Error converting CSV to JSON: " + e.getMessage(), error, JOptionPane.ERROR_MESSAGE);
@@ -222,16 +232,20 @@ public class AppGUI extends JFrame {
             }
         } else if (fileExtension.equals("json")) {
             // directly launch HTML page with JSON file
-            launchHtmlWithJson(inputFileOrUrl);
+            launchHtmlWithJson(inputFileOrUrl, overlap);
         } else {
             // invalid file type
             JOptionPane.showMessageDialog(this, "Invalid file type: " + fileExtension, error, JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private void launchHtmlWithJson(String jsonFilePath) {
+    private void launchHtmlWithJson(String jsonFilePath, boolean seeOverlap) {
         try {
-            String relativePath = "src/main/resources/calendar.html";
+            String relativePath;
+            if(seeOverlap)
+                relativePath = "src/main/resources/overlap_calendar.html";
+            else
+                relativePath = "src/main/resources/calendar.html";
             File file = new File(relativePath);
             URI uri = file.toURI();
             String jsonString = new String(Files.readAllBytes(Paths.get(jsonFilePath)));
@@ -249,7 +263,9 @@ public class AppGUI extends JFrame {
         }
     }
 
-    private void lauchServer(String file) {
+
+    private void launchServer(String file) {
+
         server = new Server(8080);
 
         ServletContextHandler icsHandler = new ServletContextHandler();
@@ -277,7 +293,18 @@ public class AppGUI extends JFrame {
             server.start();
             server.join();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e);
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private void stopServer() {
+        if(server != null) {
+            try {
+                server.stop();
+            } catch (Exception e) {
+                logger.error(e);
+            }
         }
     }
 
@@ -301,7 +328,9 @@ public class AppGUI extends JFrame {
                 String url = urlTextField.getText();
                 url = url.replace("webcal://", "https://");
                 saveIcsFile(url);
-                launchHtmlWithIcs(false);
+
+                launchHtmlWithIcs(false, "http://localhost:8080/");
+
                 closeInputPanel(inputPanel);
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(null, "Error downloading calendar: " + ex.getMessage());
@@ -313,16 +342,18 @@ public class AppGUI extends JFrame {
                 String url = urlTextField.getText();
                 url = url.replace("webcal://", "https://");
                 saveIcsFile(url);
-                launchHtmlWithIcs(true);
+
+                launchHtmlWithIcs(true, "http://localhost:8080/");
+
                 closeInputPanel(inputPanel);
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(null, "Error downloading calendar: " + ex.getMessage());
             }
         });
 
-        cancelButton.addActionListener(e -> {
-            closeInputPanel(inputPanel);
-        });
+
+        cancelButton.addActionListener(e -> closeInputPanel(inputPanel));
+
 
         JDialog dialog = new JDialog();
         dialog.setContentPane(inputPanel);
@@ -331,11 +362,14 @@ public class AppGUI extends JFrame {
         dialog.setVisible(true);
     }
 
-    private void saveIcsFile(String url) throws IOException {
+
+    private void saveIcsFile(String url) throws IOException{
         URL website = new URL(url);
         InputStream in = website.openStream();
-        Files.copy(in, Paths.get("src/main/resources/fenix_calendar.ics"), StandardCopyOption.REPLACE_EXISTING);
+        Path path = Paths.get("src/main/resources/fenix_calendar.ics");
+        Files.copy(in, path, StandardCopyOption.REPLACE_EXISTING);
     }
+
 
     private void closeInputPanel(JPanel inputPanel) {
         Window window = SwingUtilities.getWindowAncestor(inputPanel);
@@ -344,14 +378,21 @@ public class AppGUI extends JFrame {
         }
     }
 
-    private void launchHtmlWithIcs(boolean new_calendar) {
+
+    private void launchHtmlWithIcs(boolean newCalendar, String url) {
         try {
-            if (new_calendar)
-                lauchServer("new_calendar_from_another.html");
-            else
-                lauchServer("fenix_calendar.html");
-            String path = "http://localhost:8080/";
-            URI uri = new URI(path);
+            Thread serverThread = new Thread(() -> {
+                stopServer();
+                if (newCalendar)
+                    launchServer("new_calendar_from_another.html");
+                else {
+                    launchServer("fenix_calendar.html");
+                }
+
+            });
+            serverThread.start();
+            URI uri = new URI(url);
+
             if (Desktop.isDesktopSupported()) {
                 Desktop.getDesktop().browse(uri);
             }
@@ -363,8 +404,5 @@ public class AppGUI extends JFrame {
             JOptionPane.showMessageDialog(this, "Error launching server: " + e.getMessage(), error, JOptionPane.ERROR_MESSAGE);
         }
     }
-
-
-
 
 }
