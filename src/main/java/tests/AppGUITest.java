@@ -34,7 +34,7 @@ class AppGUITest {
 	
 	@Test
 	void launchHTMLCSV() {
-		assertTrue(app.launchHtml(k + "\\src\\main\\resources\\horario-exemplo.csv"));
+		assertTrue(app.launchHtml(k + "\\src\\main\\resources\\horario-exemplo.csv", false));
 	}
 	
 	@Test
