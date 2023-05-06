@@ -47,6 +47,7 @@
             left: 50%;
             margin-left: -8px;
         }
+
     </style>
 </head>
 <body>
@@ -60,6 +61,7 @@
         <button id="exportCsvButton">Export CSV</button>
         <button id="exportJsonButton">Export JSON</button>
     </div>
+    <div id='calendar-footer'></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
@@ -73,7 +75,7 @@
 
 <script>
 
-    console.log(myData)
+
     const eventsArr = myData.map(obj => ({
         id: obj.Turno,
         title: obj["Unidade Curricular"],
@@ -81,6 +83,8 @@
         end: `${obj["Data da aula"].split('/').reverse().join('-')}T${obj["Hora fim da aula"]}`,
         allDay: false,
         classNames: [obj.Turma],
+        overlap: false,
+        overcrowded: false,
         extendedProps: {
             "Inscritos no turno": obj["Inscritos no turno"],
             "Turma": obj.Turma,
@@ -90,7 +94,7 @@
             "Lotação da sala": obj["Lotação da sala"],
             "Dia da semana": obj["Dia da semana"],
             "Data da aula": obj["Data da aula"],
-            "Unidade Curricular": obj["Unidade Curricular"]
+            "Unidade Curricular": obj["Unidade Curricular"],
         },
 
         dataTooltip: `<div><strong>${obj["Unidade Curricular"]}</strong></div>
@@ -102,16 +106,79 @@
                   <div><strong>Dia da semana:</strong> ${obj["Dia da semana"]}</div>
                   <div><strong>Data:</strong> ${obj["Data da aula"]}</div>
                   <div><strong>Inscritos:</strong> ${obj["Inscritos no turno"]}</div>`
+
     }));
 
-    console.log(eventsArr)
+    function addOverlapEvents(events) {
 
+        var overLapsCount = 0;
+
+        // Check for overlaps in the events array
+        for (let i = 0; i < events.length; i++) {
+            const start1 = new Date(events[i].start);
+            const end1 = new Date(events[i].end);
+
+            for (let j = i + 1; j < events.length; j++) {
+                const start2 = new Date(events[j].start);
+                const end2 = new Date(events[j].end);
+
+                if (end1 > start2 && start1 < end2 &&
+                    (events[i].extendedProps.Turma === events[j].extendedProps.Turma ||
+                    (events[i].extendedProps.Turma !== events[j].extendedProps.Turma &&
+                    events[i].extendedProps["Unidade Curricular"] !== events[j].extendedProps["Unidade Curricular"]))) {
+
+                    // Modify the overlapping events to include the display property
+                    events[i].overlap = true;
+                    events[j].overlap = true;
+                    events[i].dataTooltip += `<div style="color:red"><strong>Existe uma sobreposição neste horário</strong></div>`;
+                    events[j].dataTooltip += `<div style="color:red"><strong>Existe uma sobreposição neste horário</strong></div>`;
+                    overLapsCount++;
+                }
+
+            }
+        }
+
+        return overLapsCount;
+    }
+
+    function addOvercrowdedEvents(events) {
+        var overCrowdCount = 0;
+        for (let i = 0; i < events.length; i++) {
+            if(events[i].extendedProps["Lotação da sala"] < events[i].extendedProps["Inscritos no turno"]) {
+                events[i].overcrowded = true;
+                events[i].dataTooltip += `<div style="color:orange"><strong>Existe sobrelotação na sala</strong></div>`;
+                overCrowdCount++;
+            }
+        }
+        return overCrowdCount;
+    }
+
+    // Call addOverlapEvents and store the returned value in a variable
+    var overlaps = addOverlapEvents(eventsArr);
+    var overcrowds = addOvercrowdedEvents(eventsArr);
+
+    // Create a new HTML element at the bottom of the page
+    var footer = document.getElementById('calendar-footer');
+    var overlapCount = document.createElement('p');
+    var overcrowdCount = document.createElement('p');
+    overlapCount.innerHTML = 'Numero de sobreposições: ' + overlaps;
+    overcrowdCount.innerHTML = 'Numero de sobrelotações: ' + overcrowds;
+    footer.appendChild(overlapCount);
+    footer.appendChild(overcrowdCount);
+
+    footer.appendChild(overlapCount);
     $(document).ready(function() {
         var calendar = $('#calendar').fullCalendar({
             defaultView: 'agendaWeek',
             scrollTime: '08:00:00',
-            height: 650,
+            height: 600,
             events: eventsArr,
+            eventRender: function(event, element) {
+                if (event.overcrowded)
+                    element.css('background-color', '#FFA500FF');
+                if (event.overlap)
+                    element.css('background-color', '#ff0000');
+            },
             eventMouseover: function(calEvent, jsEvent) {
                 var tooltip = '<div class="tooltip">' + calEvent.dataTooltip + '</div>';
                 $('body').append(tooltip);
