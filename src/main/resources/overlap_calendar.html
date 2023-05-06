@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset='utf-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Calendar</title>
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css' />
+
+    <style>
+        #calendar-container {
+            height: calc(100% - 20px); /* Adjust as necessary */
+        }
+
+        #calendar, #button-container {
+            height: 100%;
+            margin-bottom: 10px;
+        }
+
+        #button-container {
+            text-align: center;
+        }
+
+        button {
+            font-size: 16px;
+            padding: 10px 20px;
+        }
+
+        .tooltip {
+            position: absolute;
+            z-index: 9999;
+            display: none;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 5px #999;
+            border-radius: 3px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .tooltip:before {
+            content: "";
+            position: absolute;
+            border: 8px solid transparent;
+            border-bottom-color: #ccc;
+            top: -16px;
+            left: 50%;
+            margin-left: -8px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id='calendar-container'>
+    <div id='calendar'></div>
+    <div id='button-container'>
+        <button id="dayButton">Day</button>
+        <button id="weekButton">Week</button>
+        <button id="monthButton">Month</button>
+        <button id="exportCsvButton">Export CSV</button>
+        <button id="exportJsonButton">Export JSON</button>
+    </div>
+    <div id='calendar-footer'></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src='https://code.jquery.com/jquery-3.6.0.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js'></script>
+<script src="data.js"></script>
+
+
+
+<script>
+
+
+    const eventsArr = myData.map(obj => ({
+        id: obj.Turno,
+        title: obj["Unidade Curricular"],
+        start: `${obj["Data da aula"].split('/').reverse().join('-')}T${obj["Hora início da aula"]}`,
+        end: `${obj["Data da aula"].split('/').reverse().join('-')}T${obj["Hora fim da aula"]}`,
+        allDay: false,
+        classNames: [obj.Turma],
+        overlap: false,
+        overcrowded: false,
+        extendedProps: {
+            "Inscritos no turno": obj["Inscritos no turno"],
+            "Turma": obj.Turma,
+            "Turno": obj.Turno,
+            "Curso": obj.Curso,
+            "Sala atribuída à aula": obj["Sala atribuída à aula"],
+            "Lotação da sala": obj["Lotação da sala"],
+            "Dia da semana": obj["Dia da semana"],
+            "Data da aula": obj["Data da aula"],
+            "Unidade Curricular": obj["Unidade Curricular"],
+        },
+
+        dataTooltip: `<div><strong>${obj["Unidade Curricular"]}</strong></div>
+                  <div><strong>Curso:</strong> ${obj.Curso}</div>
+                  <div><strong>Turma:</strong> ${obj.Turma}</div>
+                  <div><strong>Turno:</strong> ${obj.Turno}</div>
+                  <div><strong>Sala:</strong> ${obj["Sala atribuída à aula"]}</div>
+                  <div><strong>Lotação:</strong> ${obj["Lotação da sala"]}</div>
+                  <div><strong>Dia da semana:</strong> ${obj["Dia da semana"]}</div>
+                  <div><strong>Data:</strong> ${obj["Data da aula"]}</div>
+                  <div><strong>Inscritos:</strong> ${obj["Inscritos no turno"]}</div>`
+
+    }));
+
+    function addOverlapEvents(events) {
+
+        var overLapsCount = 0;
+
+        // Check for overlaps in the events array
+        for (let i = 0; i < events.length; i++) {
+            const start1 = new Date(events[i].start);
+            const end1 = new Date(events[i].end);
+
+            for (let j = i + 1; j < events.length; j++) {
+                const start2 = new Date(events[j].start);
+                const end2 = new Date(events[j].end);
+
+                if (end1 > start2 && start1 < end2 &&
+                    (events[i].extendedProps.Turma === events[j].extendedProps.Turma ||
+                    (events[i].extendedProps.Turma !== events[j].extendedProps.Turma &&
+                    events[i].extendedProps["Unidade Curricular"] !== events[j].extendedProps["Unidade Curricular"]))) {
+
+                    // Modify the overlapping events to include the display property
+                    events[i].overlap = true;
+                    events[j].overlap = true;
+                    events[i].dataTooltip += `<div style="color:red"><strong>Existe uma sobreposição neste horário</strong></div>`;
+                    events[j].dataTooltip += `<div style="color:red"><strong>Existe uma sobreposição neste horário</strong></div>`;
+                    overLapsCount++;
+                }
+
+            }
+        }
+
+        return overLapsCount;
+    }
+
+    function addOvercrowdedEvents(events) {
+        var overCrowdCount = 0;
+        for (let i = 0; i < events.length; i++) {
+            if(events[i].extendedProps["Lotação da sala"] < events[i].extendedProps["Inscritos no turno"]) {
+                events[i].overcrowded = true;
+                events[i].dataTooltip += `<div style="color:orange"><strong>Existe sobrelotação na sala</strong></div>`;
+                overCrowdCount++;
+            }
+        }
+        return overCrowdCount;
+    }
+
+    // Call addOverlapEvents and store the returned value in a variable
+    var overlaps = addOverlapEvents(eventsArr);
+    var overcrowds = addOvercrowdedEvents(eventsArr);
+
+    // Create a new HTML element at the bottom of the page
+    var footer = document.getElementById('calendar-footer');
+    var overlapCount = document.createElement('p');
+    var overcrowdCount = document.createElement('p');
+    overlapCount.innerHTML = 'Numero de sobreposições: ' + overlaps;
+    overcrowdCount.innerHTML = 'Numero de sobrelotações: ' + overcrowds;
+    footer.appendChild(overlapCount);
+    footer.appendChild(overcrowdCount);
+
+    footer.appendChild(overlapCount);
+    $(document).ready(function() {
+        var calendar = $('#calendar').fullCalendar({
+            defaultView: 'agendaWeek',
+            scrollTime: '08:00:00',
+            height: 600,
+            events: eventsArr,
+            eventRender: function(event, element) {
+                if (event.overcrowded)
+                    element.css('background-color', '#FFA500FF');
+                if (event.overlap)
+                    element.css('background-color', '#ff0000');
+            },
+            eventMouseover: function(calEvent, jsEvent) {
+                var tooltip = '<div class="tooltip">' + calEvent.dataTooltip + '</div>';
+                $('body').append(tooltip);
+                $(this).mouseover(function(e) {
+                    $(this).css('z-index', 10000);
+                    $('.tooltip').fadeIn('500');
+                    $('.tooltip').fadeTo('10', 1.9);
+                }).mousemove(function(e) {
+                    $('.tooltip').css('top', e.pageY + 10);
+                    $('.tooltip').css('left', e.pageX + 20);
+                });
+            },
+            eventMouseout: function(calEvent, jsEvent) {
+                $(this).css('z-index', 8);
+                $('.tooltip').remove();
+            }
+        });
+
+        // Define click handlers for buttons
+        $("#dayButton").click(function() {
+            calendar.fullCalendar('changeView', 'agendaDay');
+        });
+
+        $("#weekButton").click(function() {
+            calendar.fullCalendar('changeView', 'agendaWeek');
+        });
+
+        $("#monthButton").click(function() {
+            calendar.fullCalendar('changeView', 'month');
+        });
+
+        $("#exportCsvButton").click(function() {
+            exportDataToCsv(eventsArr);
+        });
+
+        $("#exportJsonButton").click(function() {
+            exportDataToJson(eventsArr);
+        });
+
+
+    });
+
+    function exportDataToCsv(data) {
+        const csvRows = [];
+
+        // Add header row
+        csvRows.push([
+            'ID',
+            'Title',
+            'Start',
+            'End',
+            'All Day',
+            'Class Names',
+            'Inscritos no turno',
+            'Turma',
+            'Turno',
+            'Curso',
+            'Sala atribuída à aula',
+            'Lotação da sala',
+            'Dia da semana',
+            'Data da aula',
+            'Unidade Curricular'
+        ]);
+
+        // Add data rows
+        data.forEach(event => {
+            csvRows.push([
+                event.id,
+                event.title,
+                event.start,
+                event.end,
+                event.allDay,
+                event.classNames.join(' '),
+                event.extendedProps["Inscritos no turno"],
+                event.extendedProps["Turma"],
+                event.extendedProps["Turno"],
+                event.extendedProps["Curso"],
+                event.extendedProps["Sala atribuída à aula"],
+                event.extendedProps["Lotação da sala"],
+                event.extendedProps["Dia da semana"],
+                event.extendedProps["Data da aula"],
+                event.extendedProps["Unidade Curricular"]
+            ]);
+        });
+
+        // Join rows and create blob
+        const csvData = csvRows.join('\n');
+        const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+        saveAs(blob, 'events.csv');
+    }
+
+    function exportDataToJson(data) {
+        // Remove dataTooltip property and flatten extendedProps
+        const dataWithoutTooltip = data.map(({ dataTooltip, extendedProps, ...rest }) => {
+            return {
+                ...rest,
+                ...extendedProps,
+            };
+        });
+
+        const jsonData = JSON.stringify(dataWithoutTooltip);
+        const blob = new Blob([jsonData], { type: 'application/json;charset=utf-8;' });
+        saveAs(blob, 'events.json');
+    }
+
+
+</script>
+</body>
+</html>
