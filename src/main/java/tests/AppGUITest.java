@@ -39,7 +39,7 @@ class AppGUITest {
 	
 	@Test
 	void launchHTMLJSON() {
-		assertTrue(app.launchHtml(k + "\\src\\main\\resources\\output.csv"));
+		assertTrue(app.launchHtml(k + "\\src\\main\\resources\\output.csv", false));
 	}
 	
 	@Test
