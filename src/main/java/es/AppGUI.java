@@ -30,23 +30,86 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONTokener;
 
+
+/**
+
+ Classe para interface gráfica de usuário que permite conversão de arquivos CSV para JSON e vice-versa,
+
+ bem como visualização de calendário em formato HTML. Permite ainda buscar um calendário da plataforma
+
+ Fenix e salvar o resultado em um arquivo.
+
+ */
+
 public class AppGUI extends JFrame {
+
+    /**
+
+     Classe que representa um objeto Logger, usado para registrar mensagens de log em uma aplicação.
+     O Logger é criado a partir da classe AppGUI usando a biblioteca LogManager.
+     As mensagens de log registradas pelo Logger podem ajudar a identificar problemas e depurar o código da aplicação.
+
+     */
 
     public static final Logger logger = LogManager.getLogger(AppGUI.class);
 
+
+    /**
+     * Representa um campo de texto para entrada de caminho de arquivo.
+     *
+
+     */
+
     private JTextField inputFileTextField;
+
+    /**
+
+     Representa um botão de rádio para conversão de CSV para JSON.
+     */
+
     private JRadioButton csvToJsonRadioButton;
+
+    /**
+
+     Representa um botão de opção para selecionar a conversão de JSON para CSV.
+     */
+
     private JRadioButton jsonToCsvRadioButton;
+
+    /**
+
+     Representa uma string de erro.
+     */
+
     private String error = "Error";
+
+
+    /**
+
+     Representa um objeto do tipo Server que será utilizado para executar um servidor.
+     O objeto é marcado como "transient" para indicar que ele não deve ser serializado
+     em conjunto com o objeto que o contém.
+     */
 
     private transient Server server;
 
+    /**
+
+     Método principal que inicia a aplicação Fenix.
+     Cria uma nova instância da classe AppGUI e chama o método start().
+     @param args Argumentos passados por linha de comando (não são utilizados)
+     */
 
     public static void main(String[] args) {
         AppGUI app = new AppGUI();
         app.start();
     }
 
+    /**
+
+     Inicializa os componentes gráficos da aplicação.
+     @return true se a inicialização foi bem sucedida.
+     */
 
     public boolean start() {
         initComponents();
@@ -130,6 +193,14 @@ public class AppGUI extends JFrame {
         setVisible(true);
     }
 
+    /**
+     * Converte um arquivo CSV em um arquivo JSON ou um arquivo JSON em um arquivo CSV.
+     *
+     * Este método é chamado quando o usuário clica no botão "Converter" da interface gráfica. Ele determina qual opção de conversão (CSV para JSON ou JSON para CSV)
+     * foi selecionada pelo usuário e chama o método apropriado para converter o arquivo. Em seguida, encerra o aplicativo. Se ocorrer uma exceção, uma mensagem de erro será registrada no log.
+     *
+     * @throws IllegalArgumentException se a opção selecionada pelo usuário for inválida
+     */
 
     private void convertButtonActionPerformed() {
         int option = 0;
@@ -156,7 +227,14 @@ public class AppGUI extends JFrame {
         System.exit(0);
     }
 
+    /**
+     * Converte um arquivo CSV em um arquivo JSON.
+     *
+     * @param inputFileOrUrl o caminho do arquivo CSV de entrada ou URL a ser convertido em JSON
+     * @return true se a conversão foi bem sucedida, false caso contrário
 
+     * @throws JSONException se o arquivo CSV tiver um formato inválido
+     */
 
     public boolean csvToJson(String inputFileOrUrl) {
         try (InputStream inputStream = getInputStream(inputFileOrUrl);
@@ -174,6 +252,15 @@ public class AppGUI extends JFrame {
         return true;
     }
 
+    /**
+     * Converte um arquivo JSON em um arquivo CSV.
+     *
+     * @param inputFileOrUrl o caminho do arquivo JSON de entrada ou URL a ser convertido em CSV
+     * @return true se a conversão foi bem sucedida, false caso contrário
+
+     * @throws JSONException se o arquivo JSON tiver um formato inválido
+     */
+
     public boolean jsonToCsv(String inputFileOrUrl) {
         try (InputStream inputStream = getInputStream(inputFileOrUrl);
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
@@ -190,6 +277,14 @@ public class AppGUI extends JFrame {
         return true;
     }
 
+    /**
+     * Retorna um objeto InputStream para um arquivo local ou URL.
+     *
+     * @param inputFileOrUrl o caminho do arquivo local ou URL para obter o InputStream
+     * @return um objeto InputStream para o arquivo especificado
+     * @throws IOException se ocorrer um erro de entrada/saída ao abrir o arquivo ou URL
+     */
+
     public InputStream getInputStream(String inputFileOrUrl) throws IOException {
         InputStream inputStream;
         if (inputFileOrUrl.startsWith("http") || inputFileOrUrl.startsWith("https")) {
@@ -201,6 +296,14 @@ public class AppGUI extends JFrame {
         }
         return inputStream;
     }
+
+    /**
+
+     Salva o conteúdo de um arquivo em disco. Abre um JFileChooser para que o usuário escolha o local de salvamento.
+     @param type O tipo de arquivo a ser salvo (exemplo: "JSON", "CSV").
+     @param content O conteúdo do arquivo a ser salvo.
+     @throws java.io.IOException se ocorrer um erro de I/O durante a operação de escrita do arquivo.
+     */
 
     private void saveFile(String type, String content) throws java.io.IOException{
         JFileChooser fileChooser = new JFileChooser();
@@ -215,6 +318,17 @@ public class AppGUI extends JFrame {
             JOptionPane.showMessageDialog(this, "Successfully converted to: " + fileToSave.getAbsolutePath(), "Success", JOptionPane.INFORMATION_MESSAGE);
         }
     }
+
+    /**
+
+     Lança uma página HTML a partir de um arquivo de entrada ou URL, podendo opcionalmente sobrepor janelas.
+     Se o arquivo de entrada é um arquivo CSV, ele será convertido para JSON antes de ser aberto na página HTML.
+     @param inputFileOrUrl o caminho do arquivo de entrada ou URL
+     @param overlap um booleano que indica se a nova janela deve ser sobreposta a outras janelas
+     @return true se a página HTML foi aberta com sucesso, caso contrário, false
+
+     @throws JSONException se o formato do arquivo CSV for inválido
+     */
 
     public boolean launchHtml(String inputFileOrUrl, boolean overlap) {
         String fileExtension = inputFileOrUrl.substring(inputFileOrUrl.lastIndexOf(".") + 1).toLowerCase();
@@ -246,6 +360,14 @@ public class AppGUI extends JFrame {
         return true;
     }
 
+    /**
+
+     Lança uma página HTML contendo um calendário a partir de um arquivo JSON. O arquivo JSON pode ser fornecido como um caminho absoluto ou um URL.
+     @param jsonFilePath o caminho absoluto ou URL do arquivo JSON a ser usado como entrada.
+     @param seeOverlap se true, a página HTML exibirá sobreposições de eventos no calendário, caso contrário, não exibirá.
+
+     */
+
     private void launchHtmlWithJson(String jsonFilePath, boolean seeOverlap) {
         try {
             String relativePath;
@@ -270,6 +392,12 @@ public class AppGUI extends JFrame {
         }
     }
 
+    /**
+
+     Inicia um servidor na porta 8080 e configura os manipuladores de contexto para servir um arquivo e um servlet.
+     @param file O nome do arquivo que será servido.
+
+     */
 
     private void launchServer(String file) {
 
@@ -305,6 +433,12 @@ public class AppGUI extends JFrame {
         }
     }
 
+    /**
+
+     Para o servidor em execução, se houver algum.
+
+     */
+
     private void stopServer() {
         if(server != null) {
             try {
@@ -314,6 +448,13 @@ public class AppGUI extends JFrame {
             }
         }
     }
+
+    /**
+
+     Exibe um painel com uma entrada de texto para a URL do calendário Fenix, além de botões para visualizar o calendário na web ou criar um novo arquivo .ics.
+     @return true, se o botão do calendário foi clicado com sucesso
+
+     */
 
     public boolean getCalendarButtonActionPerformed() {
         JPanel inputPanel = new JPanel();
@@ -370,6 +511,12 @@ public class AppGUI extends JFrame {
         return true;
     }
 
+    /**
+
+     Salva o arquivo ICS a partir de uma URL fornecida.
+     @param url URL do arquivo ICS a ser baixado e salvo.
+     @throws IOException se ocorrer um erro de E/S durante a operação de download e salvamento do arquivo.
+     */
 
     private void saveIcsFile(String url) throws IOException{
         URL website = new URL(url);
@@ -379,6 +526,12 @@ public class AppGUI extends JFrame {
     }
 
 
+    /**
+
+     Encerra o painel de entrada fornecido como argumento.
+     @param inputPanel o painel de entrada que será fechado
+     */
+
     private void closeInputPanel(JPanel inputPanel) {
         Window window = SwingUtilities.getWindowAncestor(inputPanel);
         if (window != null) {
@@ -386,6 +539,13 @@ public class AppGUI extends JFrame {
         }
     }
 
+    /**
+
+     Lança uma página HTML e inicia um servidor para servir a página junto com o arquivo ICS correspondente.
+     @param newCalendar se for true, lançará a página "new_calendar_from_another.html", caso contrário, lançará "fenix_calendar.html".
+     @param url a URL da página que será aberta no navegador padrão.
+
+     */
 
     private void launchHtmlWithIcs(boolean newCalendar, String url) {
         try {
