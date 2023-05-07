@@ -18,9 +18,32 @@ import org.json.JSONArray;
 import org.json.JSONTokener;
 
 
+
+/**
+
+ Classe responsável por ler um arquivo .csv e transformá-lo em um arquivo .json, ou ler um arquivo .json e transformá-lo em um arquivo .csv.
+
+ Possui métodos que realizam essas conversões, além de um método para obter o fluxo de conversão escolhido pelo usuário.
+ */
+
 public class App {
 
+    /**
+
+     O logger é uma instância da classe LogManager para fazer logging de mensagens de erro, informações e outras ações importantes do aplicativo.
+     É uma variável estática final, o que significa que o objeto criado será o mesmo para todas as instâncias da classe App e não pode ser alterado durante a execução do programa.
+
+     */
+
     private static final Logger logger = LogManager.getLogger(App.class);
+
+
+    /**
+
+     Método principal que inicia a aplicação.
+     @param args os argumentos de linha de comando (não são utilizados)
+
+     */
 
     public static void main(String[] args) {
         new App().appStart();
@@ -28,10 +51,11 @@ public class App {
 
 
     /**
-     * Description: Esta função irá utilizar o valor option obtido através da função GetFlowOption() para determinar se vamos converter um ficheiro CSV para Json ou vice-versa
-     *              Ao terminar a conversão escreve "Exiting..." na consola
-     *
+
+     Inicia a aplicação e executa a opção escolhida pelo usuário.
+     @return verdadeiro se a execução foi bem sucedida, falso caso contrário.
      */
+
     public boolean appStart() {
         int option = getFlowOption();
         switch (option) {
@@ -70,10 +94,12 @@ public class App {
 
 
     /**
-     * Description: Esta função guarda na variável csvAsString o nome do ficheiro CSV que irá ser transformado numa string Json e salvo como ficheiro Json
-     *              Caso haja um erro na transição da string CSV para a string Json um erro é mostrado na consola
+     * Converte um arquivo CSV em um arquivo JSON e salva-o.
      *
+     * Este método lê um arquivo CSV do fluxo de entrada fornecido e o converte em uma string CSV. Em seguida, converte a string CSV em uma matriz JSON
+     * usando a biblioteca CDL e salva o resultado em um arquivo. Se ocorrer uma exceção, uma mensagem de erro será registrada no log.
      *
+
      */
     public void csvToJson() {
         InputStream inputStream = getInputStream();
@@ -88,13 +114,19 @@ public class App {
     }
 
 
+
+
+
     /**
-     * Description:Esta função guarda na variável jsonArray o input do utilizador que irá ser salvo como ficheiro CSV
-     *             Caso haja um erro na transição da string json para a string CSV um erro é mostrado na consola
+     * Converte um arquivo JSON em um arquivo CSV e salva-o.
      *
+     * Este método lê um arquivo JSON do fluxo de entrada fornecido e o converte em uma matriz JSON. Em seguida, converte a matriz JSON
+     * em uma string CSV usando a biblioteca CDL e salva o resultado em um arquivo. Se ocorrer uma exceção, uma mensagem de erro será registrada no log.
      *
-     *
+
      */
+
+
     public void jsonToCsv() {
         InputStream inputStream = getInputStream();
         try {
@@ -107,10 +139,15 @@ public class App {
     }
 
     /**
-     * Description: Esta função irá salvar o ficheiro dado como input na consola com o conteúdo dado nos parãmetros de entrada
+     * Salva um array de bytes em um arquivo.
      *
-     * @param bytes sendo bytes o conteudo do arquivo que irá ser salvo
+     * Este método grava um array de bytes em um arquivo especificado pelo usuário. Ele solicita ao usuário que forneça o caminho para o arquivo
+     * de saída e, em seguida, grava os bytes no arquivo usando a classe Files da API Java NIO. Se ocorrer uma exceção, uma mensagem de erro será exibida no console.
+     *
+     * @param bytes o array de bytes a ser salvo no arquivo
+
      */
+
     public void saveFile(byte[] bytes) {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -125,12 +162,15 @@ public class App {
     }
 
 
+
     /**
-     * Description: Esta função através do input utilizador guarda o path do ficheiro ou o URl do ficheiro na variável fileorUrl e caso a variável comece por http ou https,
-     *            indicando que é um URL, faz a conexão  guardando o ficheiro na variável inputStream, caso seja um path, guarda o path na variável inputStream
-     *
-     * @return inputStream sendo inputStream o input dado pelo utilizador, podendo este ser um URL ou um PATH do ficheiro
+
+     Obtém um InputStream a partir de um arquivo local ou URL remoto informado pelo usuário através da entrada padrão.
+     @return o InputStream contendo os dados do arquivo ou URL informado.
+
+
      */
+
     public InputStream getInputStream() {
         InputStream inputStream = null;
         try {
