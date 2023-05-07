@@ -18,8 +18,6 @@ Este repositório Git contém o projeto de Engenharia de Software a ser desenvol
 - Representação de horários
 - Criação de um horário de um estudante a partir dos dados do seu horário na plataforma Fénix
 - Criação de um horário para um novo estudante a partir de um horário carregado na aplicação e gravar esse horário em ficheiro
-
-## Funcionalidades a implementar
 - Visualização das aulas em sobreposição e sobrelotação, a partir de um horário carregado para a aplicação
 
 ## Testes Unitários
